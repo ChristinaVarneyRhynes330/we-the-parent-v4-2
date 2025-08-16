@@ -5,7 +5,8 @@ import Dashboard from './components/Dashboard';
 import Documents from './components/Documents';
 import Chat from './components/Chat';
 import MotionDrafting from './components/MotionDrafting';
-import { Home, FileText, MessageCircle, X, Menu, AlertTriangle, User, Scale, CheckCircle } from 'lucide-react';
+import LegalStrategy from './components/LegalStrategy';
+import { Home, FileText, MessageCircle, X, Menu, AlertTriangle, User, Scale, CheckCircle, Gavel } from 'lucide-react';
 
 import currentCaseData from './data/currentCase.json';
 import caseProgressData from './data/caseProgress.json';
@@ -162,6 +163,7 @@ const WeTheParentApp = () => {
       case 'documents': return <Documents fileInputRef={fileInputRef} handleFileUpload={handleFileUpload} uploadedFiles={uploadedFiles} setActiveTab={setActiveTab} handleQuickAction={handleQuickAction} documentTypes={documentTypes} motionFormData={motionFormData} setMotionFormData={setMotionFormData} currentCase={currentCase} />;
       case 'chat': return <Chat chatMessages={chatMessages} chatInput={chatInput} setChatInput={setChatInput} handleSendMessage={handleSendMessage} handleQuickAction={handleQuickAction} isRecording={isRecording} setIsRecording={setIsRecording} chatEndRef={chatEndRef} />;
       case 'motion_drafting': return <MotionDrafting motionFormData={motionFormData} setMotionFormData={setMotionFormData} handleDraftingSubmit={handleDraftingSubmit} draftLoading={draftLoading} draftError={draftError} aiDraft={aiDraft} handleCopy={handleCopy} />;
+      case 'legal_strategy': return <LegalStrategy currentCase={currentCase} showSuccessNotification={showSuccessNotification} />;
       default: return <Dashboard userName={userName} currentCase={currentCase} caseProgress={caseProgress} upcomingEvents={upcomingEvents} handleQuickAction={handleQuickAction} />;
     }
   };
@@ -230,7 +232,8 @@ const WeTheParentApp = () => {
               {[ 
                 { id: 'dashboard', label: 'Dashboard', icon: Home },
                 { id: 'documents', label: 'Documents', icon: FileText },
-                { id: 'chat', label: 'AI Chat', icon: MessageCircle }
+                { id: 'chat', label: 'AI Chat', icon: MessageCircle },
+                { id: 'legal_strategy', label: 'Legal Strategy', icon: Gavel }
               ].map((nav) => (
                 <button 
                   key={nav.id} 
@@ -276,7 +279,8 @@ const WeTheParentApp = () => {
               {[ 
                 { id: 'dashboard', label: 'Dashboard', icon: Home },
                 { id: 'documents', label: 'Documents', icon: FileText },
-                { id: 'chat', label: 'AI Chat', icon: MessageCircle }
+                { id: 'chat', label: 'AI Chat', icon: MessageCircle },
+                { id: 'legal_strategy', label: 'Legal Strategy', icon: Gavel }
               ].map((nav) => (
                 <button 
                   key={nav.id} 
