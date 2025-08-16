@@ -1,8 +1,7 @@
-    import WeTheParentApp from "./App.js";
+import WeTheParentApp from "./App.js";
 
-    export default function Home() {
-      return (
-        <WeTheParentApp />
-      );
-    }
-    
+export default function Home() {
+  return (
+    <WeTheParentApp />
+  );
+}
