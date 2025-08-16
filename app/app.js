@@ -156,7 +156,7 @@ const WeTheParentApp = () => {
   useEffect(() => {
     setChatMessages([{
       type: 'ai',
-      content: "Good morning! I've reviewed your case file. Based on the upcoming hearing date, I recommend we prepare a Motion for Increased Visitation. Shall I help you draft this document?",
+      content: "Good morning! I&apos;ve reviewed your case file. Based on the upcoming hearing date, I recommend we prepare a Motion for Increased Visitation. Shall I help you draft this document?",
       timestamp: new Date().toISOString(),
       suggestions: ["Yes, Draft Motion", "Show Options"]
     }]);
@@ -181,11 +181,11 @@ const WeTheParentApp = () => {
       let aiResponse = '';
       const input = chatInput.toLowerCase();
       if (input.includes('motion') || input.includes('increased visitation')) {
-        aiResponse = "Perfect! I'll help you create a compelling motion. I'll need some information:\n\n• Current visitation schedule\n• Reasons for requesting increase\n• Documentation of progress made\n• Proposed new schedule\n\nBased on your case timeline, I recommend filing this motion before your next hearing on March 15th. This gives the court time to review and potentially rule during the adjudicatory hearing.\n\n📄 Would you like me to start drafting now?";
+        aiResponse = "Perfect! I&apos;ll help you create a compelling motion. I&apos;ll need some information:\n\n• Current visitation schedule\n• Reasons for requesting increase\n• Documentation of progress made\n• Proposed new schedule\n\nBased on your case timeline, I recommend filing this motion before your next hearing on March 15th. This gives the court time to review and potentially rule during the adjudicatory hearing.\n\n📄 Would you like me to start drafting now?";
       } else if (input.includes('draft') || input.includes('document')) {
         aiResponse = "I can draft any legal document you need with proper Florida formatting:\n\n✓ Motion for Increased Visitation\n✓ Response to DCF Motion\n✓ Objection to Evidence\n✓ Emergency Motions\n✓ Witness Affidavits\n✓ Case Plan Updates\n\nEach document will include case-specific facts from your uploaded files, proper legal citations, and compliance with Florida Rules of Juvenile Procedure. What would you like me to draft?";
       } else {
-        aiResponse = `I understand you're asking about "${chatInput}". What specific assistance do you need for your case today?`;
+        aiResponse = `I understand you&apos;re asking about "${chatInput}". What specific assistance do you need for your case today?`;
       }
       const response = {
         type: 'ai',
@@ -201,14 +201,14 @@ const WeTheParentApp = () => {
   const handleQuickAction = (action) => {
     let response = '';
     if (action === "Yes, Draft Motion" || action === "Start Drafting") {
-      response = "I'll begin drafting your Motion for Increased Visitation. This will include:\n\n📋 MOTION SECTIONS:\n1. Caption with case details\n2. Introduction and background\n3. Legal basis and authority\n4. Statement of facts\n5. Argument and analysis\n6. Prayer for relief\n7. Certificate of service\n\n🔍 EVIDENCE INTEGRATION:\n• Your parenting class completion\n• Housing stability documentation\n• Progress in required services\n• Positive supervision reports\n\nEstimated completion: 10-15 minutes\nWould you like to begin with the current visitation schedule details?";
+      response = "I&apos;ll begin drafting your Motion for Increased Visitation. This will include:\n\n📋 MOTION SECTIONS:\n1. Caption with case details\n2. Introduction and background\n3. Legal basis and authority\n4. Statement of facts\n5. Argument and analysis\n6. Prayer for relief\n7. Certificate of service\n\n🔍 EVIDENCE INTEGRATION:\n• Your parenting class completion\n• Housing stability documentation\n• Progress in required services\n• Positive supervision reports\n\nEstimated completion: 10-15 minutes\nWould you like to begin with the current visitation schedule details?";
       setActiveTab('motion_drafting');
     } else if (action === "Upload Files") {
       response = "Great! Uploading files helps me provide more accurate assistance. I can process:\n\n📄 SUPPORTED FORMATS:\n• Court documents (PDF, DOC)\n• Evidence photos (JPG, PNG)\n• Audio/video recordings\n• Text documents\n• Email correspondence\n\nClick the upload button or drag files directly into the chat.";
       if (fileInputRef.current) fileInputRef.current.click();
       setActiveTab('documents');
     } else {
-      response = "Okay, let's get started. What do you need help with?";
+      response = "Okay, let&apos;s get started. What do you need help with?";
     }
     setChatMessages(prev => [...prev, { type: 'ai', content: response, timestamp: new Date().toISOString() }]);
   };
@@ -291,13 +291,8 @@ const WeTheParentApp = () => {
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <div className="flex items-center justify-between mb-6">
           <div><h1 className="text-3xl font-bold text-slate-700 mb-2">Welcome back, Sarah</h1>
-          <p className="text-slate-600 text-lg">Your family's legal journey continues with strength and determination.</p></div>
+          <p className="text-slate-600 text-lg">Your family&apos;s legal journey continues with strength and determination.</p></div>
           <Scale className="h-20 w-20 text-slate-400 opacity-50" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">Case: {currentCase.number}</div></div>
-          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">Next Hearing: {currentCase.nextHearing}</div></div>
-          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">{currentCase.circuit}</div></div>
         </div>
       </div>
       <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -306,7 +301,7 @@ const WeTheParentApp = () => {
           <div><h2 className="text-xl font-bold text-slate-700">AI Legal Assistant</h2><p className="text-slate-600">Powered by Advanced Legal Intelligence</p></div>
         </div>
         <div className="bg-orange-100 p-4 rounded-lg mb-4">
-          <p className="text-slate-700">"Good morning! I've reviewed your case file. Based on the upcoming hearing date, I recommend we prepare a Motion for Increased Visitation. Shall I help you draft this document?"</p>
+          <p className="text-slate-700">&quot;Good morning! I&apos;ve reviewed your case file. Based on the upcoming hearing date, I recommend we prepare a Motion for Increased Visitation. Shall I help you draft this document?&quot;</p>
           <div className="flex flex-wrap gap-3 mt-3">
             <button onClick={() => handleQuickAction("Yes, Draft Motion")} className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-700 transition-colors">Yes, Draft Motion</button>
             <button onClick={() => handleQuickAction("Show Options")} className="bg-white text-orange-600 border border-orange-600 px-4 py-2 rounded-lg text-sm hover:bg-orange-50 transition-colors">Show Options</button>
@@ -769,11 +764,11 @@ const EmergencyPanel = ({ setShowEmergencyMode, setChatMessages, setActiveTab, s
       <div className="flex items-center justify-between mb-4"><h2 className="text-xl font-bold text-red-600 flex items-center"><AlertTriangle className="h-6 w-6 mr-2" />Emergency Mode</h2>
         <button onClick={() => setShowEmergencyMode(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
       </div>
-      <p className="text-gray-700 mb-6">I'm here to help immediately. What type of emergency document do you need?</p>
+      <p className="text-gray-700 mb-6">I&apos;m here to help immediately. What type of emergency document do you need?</p>
       <div className="space-y-3">
         {['Emergency Motion for Temporary Relief', 'Emergency Stay Request', 'Emergency Hearing Request', 'Expedited Filing Documents'].map((option, index) => (
           <button key={index} onClick={() => {
-            setChatMessages(prev => [...prev, { type: 'ai', content: `🚨 GENERATING ${option.toUpperCase()} 🚨\n\nI'm immediately creating this emergency document with:\n\n• Urgent legal predicates\n• Proper emergency procedural formatting\n• Case-specific emergency facts\n• Expedited filing instructions\n\nDocument will be ready in moments...`, timestamp: new Date().toISOString() }]);
+            setChatMessages(prev => [...prev, { type: 'ai', content: `🚨 GENERATING ${option.toUpperCase()} 🚨\n\nI&apos;m immediately creating this emergency document with:\n\n• Urgent legal predicates\n• Proper emergency procedural formatting\n• Case-specific emergency facts\n• Expedited filing instructions\n\nDocument will be ready in moments...`, timestamp: new Date().toISOString() }]);
             setShowEmergencyMode(false);
             setActiveTab('chat');
             showSuccessNotification('Emergency document generation started!');
