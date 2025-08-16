@@ -8,6 +8,10 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  if (!process.env.GOOGLE_API_KEY) {
+    return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+  }
+
   try {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });

@@ -1,0 +1,6 @@
+[
+  { "id": "motion", "title": "Motion", "subtitle": "File requests", "icon": "Edit3", "color": "text-orange-600" },
+  { "id": "affidavit", "title": "Affidavit", "subtitle": "Sworn statement", "icon": "FileCheck", "color": "text-blue-600" },
+  { "id": "objection", "title": "Objection", "subtitle": "Challenge evidence", "icon": "AlertTriangle", "color": "text-red-600" },
+  { "id": "exhibits", "title": "Exhibits", "subtitle": "Evidence list", "icon": "List", "color": "text-green-600" }
+]

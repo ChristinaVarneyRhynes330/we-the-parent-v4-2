@@ -1,0 +1,6 @@
+[
+  { "task": "Parenting Classes", "status": "Complete", "progress": 100 },
+  { "task": "Housing Stability", "status": "In Progress", "progress": 75 },
+  { "task": "Substance Abuse Program", "status": "In Progress", "progress": 60 },
+  { "task": "Mental Health Evaluation", "status": "Scheduled", "progress": 0 }
+]

@@ -1,0 +1,6 @@
+[
+  { "title": "Adjudicatory Hearing", "date": "March 15, 2025 at 2:00 PM", "daysRemaining": 3, "type": "critical" },
+  { "title": "Supervised Visitation", "date": "March 20, 2025 at 10:00 AM", "daysRemaining": 8, "type": "routine" },
+  { "title": "Case Plan Review", "date": "March 25, 2025 at 1:30 PM", "daysRemaining": 13, "type": "important" },
+  { "title": "Judicial Review Hearing", "date": "April 10, 2025 at 9:00 AM", "daysRemaining": 29, "type": "important" }
+]
