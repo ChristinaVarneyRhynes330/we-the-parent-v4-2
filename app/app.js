@@ -64,9 +64,13 @@ const WeTheParentApp = () => {
   const [draftLoading, setDraftLoading] = useState(false);
   const [draftError, setDraftError] = useState(null);
 
+  // Your name has been set here!
+  const [userName, setUserName] = useState('Christina');
+
   // Mock data for the app
   const currentCase = {
-    number: '2025-DP-000123',
+    // The case number has been updated here
+    number: '2024-DP-000587-XXDP-BC',
     nextHearing: 'March 15, 2025',
     circuit: '5th Judicial Circuit',
     progress: 65,
@@ -290,9 +294,14 @@ const WeTheParentApp = () => {
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <div className="flex items-center justify-between mb-6">
-          <div><h1 className="text-3xl font-bold text-slate-700 mb-2">Welcome back, Sarah</h1>
+          <div><h1 className="text-3xl font-bold text-slate-700 mb-2">Welcome back, {userName}</h1>
           <p className="text-slate-600 text-lg">Your family&apos;s legal journey continues with strength and determination.</p></div>
           <Scale className="h-20 w-20 text-slate-400 opacity-50" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">Case: {currentCase.number}</div></div>
+          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">Next Hearing: {currentCase.nextHearing}</div></div>
+          <div className="bg-slate-100 rounded-lg p-4"><div className="text-sm text-slate-600 mb-1">{currentCase.circuit}</div></div>
         </div>
       </div>
       <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -715,7 +724,7 @@ const WeTheParentApp = () => {
               </button>
               <div className="flex items-center">
                 <div className="bg-slate-700 rounded-full p-2 mr-2"><User className="h-5 w-5 text-white" /></div>
-                <span className="text-sm font-medium text-slate-700">Sarah M.</span>
+                <span className="text-sm font-medium text-slate-700">{userName}</span>
               </div>
             </div>
           </div>
