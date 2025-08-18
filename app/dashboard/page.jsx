@@ -2,44 +2,73 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Import the Link component
+import Link from 'next/link';
 import { createClient } from '../lib/supabase/client';
 import { Scale } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  const userName = 'Christina';
+  
+  // New state to hold the current user object
+  const [user, setUser] = useState(null);
 
   const [caseNumber, setCaseNumber] = useState('');
   const [caseName, setCaseName] = useState('');
-  const [status, setStatus] = useState('Active');
   const [message, setMessage] = useState('');
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // This useEffect now also gets the current user
   useEffect(() => {
-    const getCases = async () => {
-      const { data, error } = await supabase.from('cases').select('*');
+    const getData = async () => {
+      // Get the currently logged-in user
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      // Fetch the cases for that user
+      const { data: cases, error } = await supabase
+        .from('cases')
+        .select('*');
+      
       if (error) {
         console.error('Error fetching cases:', error);
       } else {
-        setCases(data);
+        setCases(cases);
       }
       setLoading(false);
     };
-    getCases();
+    getData();
   }, [supabase]);
 
   const handleCreateCase = async (e) => {
     e.preventDefault();
     setMessage('');
+
+    if (!user) {
+        setMessage('Error: You must be logged in to create a case.');
+        return;
+    }
+
+    // Now we include the user's ID in the new row
     const { data, error } = await supabase
       .from('cases')
-      .insert([{ case_number: caseNumber, case_name: caseName, status: status }])
+      .insert([{ 
+        case_number: caseNumber, 
+        case_name: caseName, 
+        status: 'Active',
+        user_id: user.id // This is the crucial line
+      }])
       .select();
+
     if (error) {
-      setMessage('Error: Could not save the case.');
+      console.error('Error creating case:', error.message);
+      // This checks for the specific RLS error
+      if (error.message.includes('violates row-level security policy')) {
+          setMessage('Error: You do not have permission to create this case.');
+      } else {
+          setMessage('Error: Could not save the case.');
+      }
     } else {
       setMessage('Success! Case created.');
       setCases(prevCases => [...prevCases, ...data]);
@@ -55,15 +84,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8" style={{ maxWidth: '800px', margin: '2rem auto' }}>
-      {/* Welcome Section */}
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <div className="flex items-center justify-between">
-          <div><h1 className="text-3xl font-bold text-slate-700">Welcome back, {userName}</h1></div>
+          <div><h1 className="text-3xl font-bold text-slate-700">Welcome back, {user ? user.email : 'User'}</h1></div>
           <Scale className="h-20 w-20 text-slate-400" />
         </div>
       </div>
 
-      {/* Create New Case Form */}
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <h2 className="text-2xl font-bold text-slate-700 mb-4">Create a New Case</h2>
         <form onSubmit={handleCreateCase} className="space-y-4">
@@ -80,13 +107,11 @@ export default function DashboardPage() {
         </form>
       </div>
 
-      {/* Case List Section */}
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <h2 className="text-2xl font-bold text-slate-700 mb-4">Your Cases</h2>
         {loading ? <p>Loading cases...</p> : (
           <div className="space-y-3">
             {cases.map((caseItem) => (
-              // This is the new part: wrap the case item in a Link
               <Link href={`/case/${caseItem.id}`} key={caseItem.id}>
                 <div className="p-4 bg-slate-50 rounded-lg flex justify-between items-center hover:bg-slate-100 cursor-pointer">
                   <div>
@@ -101,7 +126,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Logout Button */}
       <div style={{ textAlign: 'center' }}>
         <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', cursor: 'pointer' }}>
           Log Out
