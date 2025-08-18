@@ -13,11 +13,11 @@ export async function POST(request) {
   // Construct the prompt based on the document type
   switch (documentType) {
     case 'Motion':
-      prompt = `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a Motion for Increased Visitation. The motion must be formatted with the following information in a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting:
+      prompt = `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a Motion for Increased Visitation. The motion must be formatted with the following information in a standard court caption:
         Case Name: ${caseName}
         Case Number: ${caseNumber}
         Court: [Insert Court/Division manually]
-        
+
         The body of the motion should include:
         1. A brief introduction identifying the parent and the purpose of the motion.
         2. A section titled 'Statement of Facts' that details the progress made by the parent. Use the following facts: ${reason}.
@@ -28,7 +28,7 @@ export async function POST(request) {
       break;
 
     case 'Affidavit':
-      prompt = `As an AI legal drafting assistant, draft a sworn Affidavit for a pro se parent. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting.
+      prompt = `As an AI legal drafting assistant, draft a sworn Affidavit for a pro se parent. The document must be formatted with a standard court caption.
         Case Name: ${caseName}
         Case Number: ${caseNumber}
         Court: [Insert Court/Division manually]
@@ -41,7 +41,7 @@ export async function POST(request) {
       break;
 
     case 'Objection':
-      prompt = `As an AI legal drafting assistant, draft an Objection for a pro se parent. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting.
+      prompt = `As an AI legal drafting assistant, draft an Objection for a pro se parent. The document must be formatted with a standard court caption.
         Case Name: ${caseName}
         Case Number: ${caseNumber}
         Court: [Insert Court/Division manually]
