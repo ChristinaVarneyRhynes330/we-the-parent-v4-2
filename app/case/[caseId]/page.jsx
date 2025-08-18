@@ -1,22 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '../../lib/supabase/client'; // Note the '../../'
+import { createClient } from '../../lib/supabase/client';
 import Link from 'next/link';
 
 export default function CasePage({ params }) {
   const supabase = createClient();
   const [caseDetails, setCaseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // New state for the file uploader
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const getCaseDetails = async () => {
-      // params.caseId gets the ID from the URL
       const { data, error } = await supabase
         .from('cases')
         .select('*')
-        .eq('id', params.caseId) // Fetch only the case with this ID
-        .single(); // We only expect one result
+        .eq('id', params.caseId)
+        .single();
 
       if (error) {
         console.error('Error fetching case details:', error);
@@ -30,6 +34,40 @@ export default function CasePage({ params }) {
       getCaseDetails();
     }
   }, [supabase, params.caseId]);
+
+  // This function runs when a user selects a file
+  const handleFileChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+      setMessage('');
+    }
+  };
+
+  // This function runs when the "Upload" button is clicked
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setMessage('Please select a file first.');
+      return;
+    }
+
+    setUploading(true);
+    setMessage('');
+
+    const { error } = await supabase.storage
+      .from('case-documents') // The name of your bucket
+      .upload(`public/${selectedFile.name}`, selectedFile); // Uploads the file to a 'public' folder
+
+    setUploading(false);
+
+    if (error) {
+      console.error('Error uploading file:', error);
+      setMessage(`Error: ${error.message}`);
+    } else {
+      setMessage('Success! File uploaded.');
+      setSelectedFile(null); // Clear the selected file
+    }
+  };
+
 
   if (loading) {
     return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading case details...</div>;
@@ -52,10 +90,25 @@ export default function CasePage({ params }) {
         </div>
       </div>
 
-      {/* This is where we will add the document uploader and other tools later */}
+      {/* --- New Document Uploader Section --- */}
       <div className="bg-white rounded-2xl shadow-sm p-8 mt-8">
-        <h2 className="text-2xl font-bold text-slate-700">Documents</h2>
-        <p className="text-slate-500 mt-4">Document uploader will go here...</p>
+        <h2 className="text-2xl font-bold text-slate-700 mb-4">Upload a Document</h2>
+        <div>
+          <input 
+            type="file" 
+            onChange={handleFileChange} 
+            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          {selectedFile && <p className="text-sm text-gray-600 mt-2">Selected: {selectedFile.name}</p>}
+          <button 
+            onClick={handleUpload} 
+            disabled={!selectedFile || uploading}
+            className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {uploading ? 'Uploading...' : 'Upload'}
+          </button>
+          {message && <p className="text-center mt-4">{message}</p>}
+        </div>
       </div>
     </div>
   );
