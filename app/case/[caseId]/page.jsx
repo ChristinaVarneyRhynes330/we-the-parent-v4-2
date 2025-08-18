@@ -8,14 +8,19 @@ export default function CasePage({ params }) {
   const supabase = createClient();
   const [caseDetails, setCaseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   
-  // New state for the file uploader
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const getCaseDetails = async () => {
+    const getData = async () => {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      // Get the case details
       const { data, error } = await supabase
         .from('cases')
         .select('*')
@@ -31,11 +36,10 @@ export default function CasePage({ params }) {
     };
 
     if (params.caseId) {
-      getCaseDetails();
+      getData();
     }
   }, [supabase, params.caseId]);
 
-  // This function runs when a user selects a file
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
@@ -43,34 +47,56 @@ export default function CasePage({ params }) {
     }
   };
 
-  // This function runs when the "Upload" button is clicked
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage('Please select a file first.');
+    if (!selectedFile || !user || !caseDetails) {
+      setMessage('Please select a file and ensure you are logged in.');
       return;
     }
 
     setUploading(true);
     setMessage('');
+    
+    // 1. Upload the file to Supabase Storage
+    const filePath = `${user.id}/${caseDetails.id}/${selectedFile.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from('case-documents')
+      .upload(filePath, selectedFile);
 
-    const { error } = await supabase.storage
-      .from('case-documents') // The name of your bucket
-      .upload(`public/${selectedFile.name}`, selectedFile); // Uploads the file to a 'public' folder
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      setMessage(`Error: ${uploadError.message}`);
+      setUploading(false);
+      return;
+    }
+
+    // 2. Get the URL of the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('case-documents')
+      .getPublicUrl(filePath);
+
+    // 3. Insert a record into the 'documents' database table
+    const { error: dbError } = await supabase
+      .from('documents')
+      .insert({
+        file_name: selectedFile.name,
+        storage_url: publicUrl,
+        user_id: user.id,
+        // We'll need to add a case_id to our documents table later
+      });
 
     setUploading(false);
 
-    if (error) {
-      console.error('Error uploading file:', error);
-      setMessage(`Error: ${error.message}`);
+    if (dbError) {
+      console.error('Error saving document to database:', dbError);
+      setMessage(`Error saving document record: ${dbError.message}`);
     } else {
-      setMessage('Success! File uploaded.');
-      setSelectedFile(null); // Clear the selected file
+      setMessage('Success! File uploaded and recorded.');
+      setSelectedFile(null);
     }
   };
 
-
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading case details...</div>;
+    return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading...</div>;
   }
 
   if (!caseDetails) {
@@ -85,26 +111,14 @@ export default function CasePage({ params }) {
       <div className="bg-white rounded-2xl shadow-sm p-8">
         <h1 className="text-3xl font-bold text-slate-700">{caseDetails.case_number}</h1>
         <p className="text-lg text-slate-600">{caseDetails.case_name}</p>
-        <div className="mt-4">
-          <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">{caseDetails.status}</span>
-        </div>
       </div>
 
-      {/* --- New Document Uploader Section --- */}
       <div className="bg-white rounded-2xl shadow-sm p-8 mt-8">
         <h2 className="text-2xl font-bold text-slate-700 mb-4">Upload a Document</h2>
         <div>
-          <input 
-            type="file" 
-            onChange={handleFileChange} 
-            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          {selectedFile && <p className="text-sm text-gray-600 mt-2">Selected: {selectedFile.name}</p>}
-          <button 
-            onClick={handleUpload} 
-            disabled={!selectedFile || uploading}
-            className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-          >
+          <input type="file" onChange={handleFileChange} />
+          {selectedFile && <p className="text-sm mt-2">Selected: {selectedFile.name}</p>}
+          <button onClick={handleUpload} disabled={!selectedFile || uploading} className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md">
             {uploading ? 'Uploading...' : 'Upload'}
           </button>
           {message && <p className="text-center mt-4">{message}</p>}
