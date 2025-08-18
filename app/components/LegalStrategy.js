@@ -69,7 +69,7 @@ const LegalStrategy = ({ currentCase, showSuccessNotification }) => {
               <input type="text" name="desiredOutcome" id="desiredOutcome" value={strategyFormData.desiredOutcome} onChange={handleFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
             <div>
-              <label htmlFor="opposingStance" className="block text-sm font-medium text-gray-700">Opposing Party's Stance/Arguments</label>
+              <label htmlFor="opposingStance" className="block text-sm font-medium text-gray-700">Opposing Party&apos;s Stance/Arguments</label>
               <textarea name="opposingStance" id="opposingStance" rows="3" value={strategyFormData.opposingStance} onChange={handleFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
             </div>
             <div>
