@@ -1,6 +1,6 @@
 // app/page.js
-import AssistantPage from '../assistant/pages';
-import '../assistant/assistant.css';
+import AssistantPage from './assistant/pages';
+import './assistant/assistant.css';
 
 export default function HomePage() {
   return (
@@ -16,3 +16,4 @@ export default function HomePage() {
     </main>
   );
 }
+
