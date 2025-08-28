@@ -1,5 +1,5 @@
 // app/page.js
-import AssistantPage from './assistant/pages';
+import Assistant from './assistant/pages'; // correct import path
 import './assistant/assistant.css';
 
 export default function HomePage() {
@@ -11,7 +11,7 @@ export default function HomePage() {
 
       {/* Assistant component */}
       <div style={{ marginTop: '3rem', border: '1px solid #ccc', padding: '1rem' }}>
-        <AssistantPage />
+        <Assistant />
       </div>
     </main>
   );
