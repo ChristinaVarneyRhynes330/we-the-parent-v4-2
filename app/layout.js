@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Sidebar from '../components/Sidebar'; // We're importing the new sidebar
 import './globals.css';
 
 export const metadata = {
@@ -9,24 +10,28 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <header style={{ 
-          padding: '1rem', 
-          backgroundColor: '#f8f9fa', 
-          borderBottom: '1px solid #dee2e6',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          <Image 
-            src="/logo.png" 
-            alt="We The Parent Logo" 
-            width={150} 
-            height={50} 
-          />
-        </header>
-        <main style={{ padding: '1rem' }}>
-          {children}
-        </main>
+      <body className="flex h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <header style={{ 
+            padding: '1rem', 
+            backgroundColor: '#ffffff', 
+            borderBottom: '1px solid #dee2e6',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <Image 
+              src="/logo.png" 
+              alt="We The Parent Logo" 
+              width={150} 
+              height={50}
+              style={{ objectFit: 'contain' }}
+            />
+          </header>
+          <main className="flex-1 overflow-y-auto p-6">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );
