@@ -1,18 +1,25 @@
 {
-  "name": "we-the-parent-v4",
+  "name": "we-the-parent-complete",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "server": "node server/index.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@supabase/ssr": "^0.6.1",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.55.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.539.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "next": "15.4.6",
     "openai": "^5.12.2",
     "react": "19.1.0",
