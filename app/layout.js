@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Sidebar from '../components/Sidebar'; // We're importing the new sidebar
+import Sidebar from '../components/Sidebar'; // Import the new sidebar
 import './globals.css';
 
 export const metadata = {
