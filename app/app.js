@@ -44,6 +44,7 @@ import {
   Copy,
   Printer,
 } from 'lucide-react';
+import Dashboard from './components/dashboard/Dashboard';
 
 const WeTheParentApp = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -507,6 +508,15 @@ const WeTheParentApp = () => {
       </div>
     </div>
   );
+    <Dashboard
+      userName={userName}
+      caseData={caseData}
+      handleQuickAction={handleQuickAction}
+      setActiveTab={setActiveTab}
+      fileInputRef={fileInputRef}
+      showSuccessNotification={showSuccessNotification}
+    />
+  )
 
   const renderDocuments = () => (
     <div className="space-y-6">
