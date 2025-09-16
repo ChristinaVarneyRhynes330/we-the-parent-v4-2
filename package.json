@@ -25,7 +25,8 @@
     "next-auth": "^4.24.11",
     "openai": "^5.19.1",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "react-router-dom": "^7.9.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

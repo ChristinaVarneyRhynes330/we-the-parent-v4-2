@@ -1,122 +1,84 @@
-'use client';
+import caseProgress from '@/app/data/caseProgress.json';
+import currentCase from '@/app/data/currentCase.json';
+import documentTypes from '@/app/data/documentTypes.json';
 
-import React, { useState, useEffect } from 'react';
-import { Scale, Brain, Calendar, Plus, FileUp, Bell } from 'lucide-react';
-
-const Dashboard = () => {
-  const [children, setChildren] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchChildren();
-  }, []);
-
-  const fetchChildren = async () => {
-    try {
-      const response = await fetch('/api/children');
-      const data = await response.json();
-      setChildren(data.children || []);
-    } catch (error) {
-      console.error('Error fetching children:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="p-8 flex justify-center items-center">
-        <div className="text-[#F5F5F5]">Loading dashboard...</div>
-      </div>
-    );
+// Function to fetch events from our new API route
+async function getEvents() {
+  // We use localhost for development. In production, this will be your Vercel URL.
+  const res = await fetch('http://localhost:3000/api/events', { cache: 'no-store' });
+  if (!res.ok) {
+    console.error('Failed to fetch events');
+    return [];
   }
+  const data = await res.json();
+  return data.events;
+}
+
+export default async function Dashboard() {
+  const upcomingEvents = await getEvents(); // Fetch live data
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="bg-[#0D223F] rounded-2xl p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-[#F7CAC9] mb-2">
-              Welcome Back
-            </h1>
-            <p className="text-[#F5F5F5] text-lg">
-              Managing {children.length} case{children.length !== 1 ? 's' : ''}
-            </p>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Case Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        {/* Current Case Status Widget */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-700">Current Case Status</h2>
+          <p className="text-sm text-gray-500">{currentCase.caseNumber}</p>
+          <div className="mt-2">
+            <p><strong>Status:</strong> {currentCase.status}</p>
+            <p><strong>Next Hearing:</strong> {currentCase.nextHearing}</p>
           </div>
-          <Scale className="h-20 w-20 text-[#B76E79] opacity-50" />
         </div>
-      </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          title="Active Cases"
-          value={children.length}
-          icon={Scale}
-          color="bg-[#1F3A93]"
-        />
-        <StatCard
-          title="Upcoming Visits"
-          value={children.reduce((acc, child) => acc + (child.visits?.filter(v => !v.completed).length || 0), 0)}
-          icon={Calendar}
-          color="bg-[#B76E79]"
-        />
-        <StatCard
-          title="Pending Alerts"
-          value={children.reduce((acc, child) => acc + (child.alerts?.filter(a => !a.resolved).length || 0), 0)}
-          icon={Bell}
-          color="bg-[#F7CAC9] text-[#0B1A2A]"
-        />
-        <StatCard
-          title="Documents"
-          value="12"
-          icon={FileUp}
-          color="bg-[#1F3A93]"
-        />
-      </div>
+        {/* Case Progress Widget */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-700">Case Progress</h2>
+          <div className="space-y-2 mt-2">
+            {caseProgress.map((item, index) => (
+              <div key={index}>
+                <div className="flex justify-between text-sm">
+                  <span>{item.stage}</span>
+                  <span>{item.status}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${item.progress}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Children Cards */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-[#F7CAC9]">Your Children</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {children.map((child) => (
-            <ChildCard key={child.id} child={child} />
-          ))}
-          <AddChildCard />
+        {/* Upcoming Events Widget - NOW DYNAMIC */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-700">Upcoming Events</h2>
+          <ul className="mt-2 space-y-2">
+            {upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event) => (
+                <li key={event.id} className="text-sm text-gray-600">
+                  <strong>{new Date(event.starts_at).toLocaleDateString()}:</strong> {event.title}
+                </li>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">No upcoming events.</p>
+            )}
+          </ul>
+        </div>
+
+        {/* Document Types Widget */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-700">Document Types</h2>
+          <ul className="mt-2 space-y-1">
+            {documentTypes.map((doc, index) => (
+              <li key={index} className="flex justify-between text-sm text-gray-600">
+                <span>{doc.type}</span>
+                <span>{doc.count}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
   );
-};
-
-const StatCard = ({ title, value, icon: Icon, color }) => (
-  <div className={`${color} rounded-lg p-4 text-center`}>
-    <Icon className="h-8 w-8 mx-auto mb-2" />
-    <div className="text-2xl font-bold">{value}</div>
-    <div className="text-sm opacity-90">{title}</div>
-  </div>
-);
-
-const ChildCard = ({ child }) => (
-  <div className="bg-[#0D223F] rounded-lg p-4 hover:bg-[#B76E79] transition-colors cursor-pointer">
-    <h3 className="font-bold text-lg text-[#F7CAC9] mb-2">{child.name}</h3>
-    <p className="text-sm text-[#F5F5F5] mb-2">Case: {child.case_number}</p>
-    <p className="text-sm text-[#F5F5F5] mb-2">
-      Current: {child.current_placement || 'No placement'}
-    </p>
-    <div className="flex justify-between text-xs text-[#F5F5F5]">
-      <span>{child.placements?.length || 0} placements</span>
-      <span>{child.visits?.length || 0} visits</span>
-    </div>
-  </div>
-);
-
-const AddChildCard = () => (
-  <div className="bg-[#0D223F] border-2 border-dashed border-[#B76E79] rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#B76E79] transition-colors">
-    <Plus className="h-8 w-8 text-[#B76E79] mb-2" />
-    <span className="text-[#F5F5F5]">Add Child</span>
-  </div>
-);
-
-export default Dashboard;
+}

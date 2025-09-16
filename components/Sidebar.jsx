@@ -9,7 +9,12 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-100 p-4 border-r">
+    // Updated styling to match the dark theme mockup
+    <aside className="w-64 flex-shrink-0 bg-darkNavy p-4 border-r border-gray-700">
+      <div className="mb-8 text-center">
+        {/* Placeholder for a logo */}
+        <h1 className="text-2xl font-bold text-white">WeTheParent</h1>
+      </div>
       <nav className="flex flex-col space-y-2">
         {navLinks.map((link) => (
           <Link
@@ -17,14 +22,14 @@ const Sidebar = () => {
             href={link.comingSoon ? '#' : link.href}
             className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors group ${
               link.comingSoon
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                ? 'text-gray-500 cursor-not-allowed'
+                : 'text-gray-300 hover:bg-sapphire hover:text-white'
             }`}
           >
             {link.icon}
             <span>{link.name}</span>
             {link.comingSoon && (
-               <span className="text-xs text-gray-400">(Soon)</span>
+              <span className="ml-auto text-xs text-gray-400">(Soon)</span>
             )}
           </Link>
         ))}
