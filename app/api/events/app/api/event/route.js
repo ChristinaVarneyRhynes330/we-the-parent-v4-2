@@ -1,38 +1,21 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
 
-export async function GET(request) {
-  const cookieStore = cookies();
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SECRET_KEY,
-    {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value;
-        },
-      },
-    }
-  );
-
+export async function GET() {
   try {
-    // For now, we fetch all events. Later, we can filter by case_id.
-    const { data: events, error } = await supabase
+    const { data, error } = await supabase
       .from('events')
       .select('*')
-      .order('starts_at', { ascending: true });
+      .order('event_date', { ascending: true })
 
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json({ events });
+    if (error) throw error
+    return NextResponse.json({ events: data })
   } catch (error) {
-    return new NextResponse(
-      JSON.stringify({ error: error.message }),
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
