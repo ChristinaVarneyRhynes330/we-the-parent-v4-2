@@ -15,6 +15,7 @@ export async function POST(request: Request) {
 
     const filePath = `${Date.now()}-${file.name}`;
 
+    // Upload to Supabase Storage
     const { error: uploadError } = await supabaseService.storage
       .from('case_documents')
       .upload(filePath, file, {
@@ -26,7 +27,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    const { error: insertError } = await supabaseService
+    // Insert metadata into documents table and return the inserted row
+    const { data: insertedDocs, error: insertError } = await supabaseService
       .from('documents')
       .insert({
         case_id: CASE_ID,
@@ -34,7 +36,9 @@ export async function POST(request: Request) {
         file_path: filePath,
         file_size: file.size,
         file_type: file.type,
-      });
+      })
+      .select('*') // This makes Supabase return the inserted row(s)
+      .single();   // Since we only insert one file at a time
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
@@ -42,7 +46,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       message: 'File uploaded successfully',
-      path: filePath,
+      document: insertedDocs,
     });
   } catch (err: any) {
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });

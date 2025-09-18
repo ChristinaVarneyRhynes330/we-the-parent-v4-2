@@ -3,7 +3,7 @@
 'use client';
 
 import UploadForm from '@/components/UploadForm';
-import DocumentCard from '@/components/DocumentCard';
+import DocumentCard from '../../components/DocumentCard';
 
 type DocumentStatus = 'filed' | 'review' | 'draft';
 
