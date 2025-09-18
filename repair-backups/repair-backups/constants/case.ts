@@ -1,0 +1,1 @@
+export const CASE_ID = 'replace-with-your-case-uuid';
