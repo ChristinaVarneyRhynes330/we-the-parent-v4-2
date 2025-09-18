@@ -29,7 +29,6 @@ export function useDocuments(caseId: string) {
       } else {
         setDocuments(data || []);
       }
-
       setLoading(false);
     };
 

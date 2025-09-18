@@ -100,7 +100,6 @@ const WeTheParentChat: React.FC = () => {
         if (!res.ok) throw new Error(data.error || 'Upload failed');
 
         if (data.document) {
-          // Optimistically update UI
           setMessages((prev) => [
             ...prev,
             { id: Date.now() + i, from: 'system', text: `Uploaded: ${data.document.file_name}` },
@@ -130,8 +129,8 @@ const WeTheParentChat: React.FC = () => {
 
     if (value.length > 1) {
       const matches = uploadedDocs
-        .map((doc) => doc.file_name)
-        .filter((name) => name.toLowerCase().includes(value.toLowerCase()))
+        .map((doc: UploadedDoc) => doc.file_name)
+        .filter((name: string) => name.toLowerCase().includes(value.toLowerCase()))
         .slice(0, 5);
       setSuggestions(matches);
     } else {
@@ -185,7 +184,7 @@ const WeTheParentChat: React.FC = () => {
         <div className="bg-gray-50 p-2 border-t border-gray-200 text-sm">
           <strong>Uploaded Documents:</strong>
           <ul className="list-disc pl-5">
-            {uploadedDocs.map((doc) => (
+            {uploadedDocs.map((doc: UploadedDoc) => (
               <li key={doc.id}>{doc.file_name}</li>
             ))}
           </ul>
@@ -207,7 +206,7 @@ const WeTheParentChat: React.FC = () => {
             />
             {suggestions.length > 0 && (
               <ul className="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-md mt-1 z-10 max-h-60 overflow-y-auto">
-                {suggestions.map((s, idx) => (
+                {suggestions.map((s: string, idx: number) => (
                   <li
                     key={idx}
                     onClick={() => handleSuggestionClick(s)}
