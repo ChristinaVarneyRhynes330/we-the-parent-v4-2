@@ -1,10 +1,11 @@
-/** tailwind.config.cjs */
+// tailwind.config.cjs
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     './app/**/*.{js,jsx,ts,tsx}',
     './pages/**/*.{js,jsx,ts,tsx}',
     './components/**/*.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}'
+    './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     extend: {
@@ -16,14 +17,14 @@ module.exports = {
         'garnet': '#B03A48',
         'olive-emerald': '#4C7C59',
         'terracotta': '#D97A4C',
-        'slate-gray': '#6E6E73'
+        'slate-gray': '#6E6E73',
       },
       fontFamily: {
         header: ['DM Serif Display', 'serif'],
         body: ['Work Sans', 'sans-serif'],
-        accent: ['Lora', 'serif']
-      }
-    }
+        accent: ['Lora', 'serif'],
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };

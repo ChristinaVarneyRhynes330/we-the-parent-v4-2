@@ -1,29 +1,30 @@
+// tsconfig.json
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "es2017",
     "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
+      "dom",
+      "dom.iterable",
+      "esnext"
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "esnext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "preserve",
-    "baseUrl": "src",
+    "incremental": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "*"
+        "app/*"
       ]
     },
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "incremental": true,
     "plugins": [
       {
         "name": "next"

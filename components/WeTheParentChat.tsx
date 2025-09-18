@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, FileUp } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useDocuments, UploadedDoc } from '@/hooks/useDocuments';
 
 type Message = {
   id: string | number;
@@ -10,22 +11,14 @@ type Message = {
   text: string;
 };
 
-type UploadedDoc = {
-  id: string;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  file_type: string;
-  created_at: string;
-};
-
 const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9';
 
 const WeTheParentChat: React.FC = () => {
   const supabase = createClient();
+  const { documents: uploadedDocs } = useDocuments(CASE_ID);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -37,27 +30,15 @@ const WeTheParentChat: React.FC = () => {
       {
         id: 'initial-welcome',
         from: 'ai',
-        text: "Welcome to We The Parent. I am your AI legal assistant. How can I help you with your Florida juvenile dependency case today? Remember, I cannot provide legal advice.",
+        text:
+          "Welcome to We The Parent. I am your AI legal assistant. How can I help you with your Florida juvenile dependency case today? Remember, I cannot provide legal advice.",
       },
     ]);
-    fetchExistingDocs();
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  const fetchExistingDocs = async () => {
-    const { data, error } = await supabase
-      .from<UploadedDoc>('documents')
-      .select('*')
-      .eq('case_id', CASE_ID)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setUploadedDocs(data);
-    }
-  };
 
   const handleSendMessage = async (prompt = inputValue) => {
     if (!prompt.trim()) return;
@@ -85,7 +66,8 @@ const WeTheParentChat: React.FC = () => {
       const errorMessage: Message = {
         id: Date.now() + 1,
         from: 'ai',
-        text: 'Error: Could not connect to the AI service. Please ensure the backend is running and properly configured.',
+        text:
+          'Error: Could not connect to the AI service. Please ensure the backend is running and properly configured.',
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -118,7 +100,11 @@ const WeTheParentChat: React.FC = () => {
         if (!res.ok) throw new Error(data.error || 'Upload failed');
 
         if (data.document) {
-          setUploadedDocs((prev) => [data.document, ...prev]);
+          // Optimistically update UI
+          setMessages((prev) => [
+            ...prev,
+            { id: Date.now() + i, from: 'system', text: `Uploaded: ${data.document.file_name}` },
+          ]);
         }
       }
 
@@ -146,7 +132,7 @@ const WeTheParentChat: React.FC = () => {
       const matches = uploadedDocs
         .map((doc) => doc.file_name)
         .filter((name) => name.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, 5); // limit to 5 suggestions
+        .slice(0, 5);
       setSuggestions(matches);
     } else {
       setSuggestions([]);
@@ -220,7 +206,7 @@ const WeTheParentChat: React.FC = () => {
               placeholder="Ask a question about your case..."
             />
             {suggestions.length > 0 && (
-              <ul className="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-md mt-1 z-10">
+              <ul className="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-md mt-1 z-10 max-h-60 overflow-y-auto">
                 {suggestions.map((s, idx) => (
                   <li
                     key={idx}
@@ -240,4 +226,19 @@ const WeTheParentChat: React.FC = () => {
             <Send size={24} />
           </button>
           <label htmlFor="file-upload" className="cursor-pointer">
-            <div className="bg-gray-200 text-gray-700 hover:bg-gray-300 flex items
+            <FileUp size={24} />
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            multiple
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WeTheParentChat;
