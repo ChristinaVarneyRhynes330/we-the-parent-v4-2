@@ -19,7 +19,7 @@ export function useDocuments(caseId: string) {
   useEffect(() => {
     const fetchDocuments = async () => {
       const { data, error } = await supabase
-        .from<UploadedDoc>('documents')
+        .from<UploadedDoc, UploadedDoc>('documents')
         .select('*')
         .eq('case_id', caseId)
         .order('created_at', { ascending: false });
