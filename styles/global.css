@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --charcoal-navy: #1E1F2F;
+  --dusty-mauve: #A05C6F;
+  --warm-ivory: #FDF7F2;
+  --clay-pink: #D8A7A0;
+  --garnet: #B03A48;
+
+  --font-header: 'DM Serif Display', serif;
+  --font-body: 'Work Sans', sans-serif;
+}

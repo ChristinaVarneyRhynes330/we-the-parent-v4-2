@@ -19,16 +19,14 @@ export function useDocuments(caseId: string) {
   useEffect(() => {
     const fetchDocuments = async () => {
       const { data, error } = await supabase
-        .from<UploadedDoc, UploadedDoc>('documents')
+        .from<UploadedDoc>('documents')
         .select('*')
         .eq('case_id', caseId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        setError(error.message);
-      } else {
-        setDocuments(data || []);
-      }
+      if (error) setError(error.message);
+      else setDocuments(data || []);
+
       setLoading(false);
     };
 

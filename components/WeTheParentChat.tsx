@@ -168,4 +168,56 @@ const WeTheParentChat: React.FC = () => {
             >
               {msg.text}
             </div>
-          </
+          </div>
+        ))}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="dot-flashing"></div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="border-t p-4 flex items-center space-x-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => handleInputChange(e.target.value)}
+          placeholder="Ask a question about your case"
+          className="flex-1 border rounded-lg p-2"
+        />
+        <button
+          onClick={() => handleSendMessage()}
+          className="p-2 bg-blue-600 text-white rounded-lg"
+        >
+          <Send size={18} />
+        </button>
+        <label className="p-2 bg-gray-200 rounded-lg cursor-pointer">
+          <FileUp size={18} />
+          <input
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+        </label>
+      </div>
+
+      {suggestions.length > 0 && (
+        <ul className="absolute bottom-16 left-4 bg-white border rounded-lg shadow-lg w-64">
+          {suggestions.map((s, idx) => (
+            <li
+              key={idx}
+              className="p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSuggestionClick(s)}
+            >
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+export default WeTheParentChat;

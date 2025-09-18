@@ -1,5 +1,29 @@
 {
-    "geminicodeassist.contextExclusionGitignore": false,
-    "geminicodeassist.codeGenerationPaneViewEnabled": true,
-    "geminicodeassist.chat.defaultCodeBlockDisplay": "Expanded"
+  "typescript.tsserver.exclude": [
+    "**/node_modules",
+    "**/.next",
+    "**/dist",
+    "**/build",
+    "**/coverage",
+    "**/out",
+    "**/public"
+  ],
+  "files.watcherExclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/out": true,
+    "**/public": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/out": true,
+    "**/public": true
+  }
 }
