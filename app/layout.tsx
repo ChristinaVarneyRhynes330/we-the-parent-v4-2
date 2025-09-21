@@ -1,28 +1,35 @@
+import type { Metadata } from 'next';
 import { DM_Serif_Display, Work_Sans } from 'next/font/google';
-import './globals.css';
+import '../styles/globals.css';
 import Sidebar from '@/components/Sidebar';
 
+// Setup font variables
 const dmSerif = DM_Serif_Display({
   subsets: ['latin'],
   weight: ['400'],
-  variable: '--font-header',
+  variable: '--font-header', // This name matches the CSS
 });
 
 const workSans = Work_Sans({
   subsets: ['latin'],
   weight: ['400', '600'],
-  variable: '--font-body',
+  variable: '--font-body', // This name matches the CSS
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'We The Parent',
   description: 'AI legal assistant for Florida juvenile dependency cases',
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${dmSerif.variable} ${workSans.variable} font-body bg-warm-ivory text-charcoal-navy`}>
+      {/* Apply the font variables to the body tag */}
+      <body className={`${dmSerif.variable} ${workSans.variable}`}>
         <div className="flex h-screen">
           <Sidebar />
           <main className="flex-1 overflow-y-auto">

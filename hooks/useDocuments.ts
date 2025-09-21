@@ -10,27 +10,40 @@ export type UploadedDoc = {
   created_at: string;
 };
 
-export function useDocuments(caseId: string) {
+export function useDocuments(caseId: string | null) {
   const supabase = createClient();
   const [documents, setDocuments] = useState<UploadedDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!caseId) {
+      setLoading(false);
+      return;
+    }
+
     const fetchDocuments = async () => {
+      setLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
-        .from<UploadedDoc>('documents')
+        .from('documents')
         .select('*')
         .eq('case_id', caseId)
         .order('created_at', { ascending: false });
 
-      if (error) setError(error.message);
-      else setDocuments(data || []);
-
+      if (error) {
+        console.error('Error fetching documents:', error.message);
+        setError(error.message);
+      } else {
+        setDocuments(data || []);
+      }
+      
       setLoading(false);
     };
 
     fetchDocuments();
+    // FIX: Added `supabase` to the dependency array to satisfy the linter rule.
   }, [caseId, supabase]);
 
   return { documents, loading, error };

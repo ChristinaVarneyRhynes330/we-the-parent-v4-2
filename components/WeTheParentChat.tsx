@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, FileUp } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useDocuments, UploadedDoc } from '@/hooks/useDocuments';
+import ChatHeader from '@/components/ChatHeader';
 
 type Message = {
   id: string | number;
@@ -21,6 +22,7 @@ const WeTheParentChat: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [modelName, setModelName] = useState('gpt-4o');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -53,7 +55,7 @@ const WeTheParentChat: React.FC = () => {
       const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, documents: uploadedDocs }),
+        body: JSON.stringify({ prompt, documents: uploadedDocs, modelName }),
       });
 
       if (!response.ok) throw new Error('AI service is not available');
@@ -144,7 +146,9 @@ const WeTheParentChat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto bg-white rounded-lg shadow-md relative">
+    <div className="flex flex-col h-full max-w-4xl mx-auto bg-white rounded-xl shadow-md border border-gray-200 font-body">
+      <ChatHeader currentModel={modelName} onModelChange={setModelName} />
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => (
           <div
@@ -158,11 +162,11 @@ const WeTheParentChat: React.FC = () => {
             }`}
           >
             <div
-              className={`max-w-xs md:max-w-md p-3 rounded-lg shadow-sm font-body text-sm ${
+              className={`max-w-xs md:max-w-md p-3 rounded-lg shadow-sm text-sm ${
                 msg.from === 'user'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-dusty-mauve text-white'
                   : msg.from === 'ai'
-                  ? 'bg-gray-200 text-gray-800'
+                  ? 'bg-warm-ivory text-charcoal-navy'
                   : 'bg-gray-100 text-gray-600 text-xs text-center italic'
               }`}
             >
@@ -178,21 +182,21 @@ const WeTheParentChat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t p-4 flex items-center space-x-2">
+      <div className="border-t p-4 flex items-center space-x-2 bg-warm-ivory">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder="Ask a question about your case"
-          className="flex-1 border rounded-lg p-2"
+          className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-dusty-mauve"
         />
         <button
           onClick={() => handleSendMessage()}
-          className="p-2 bg-blue-600 text-white rounded-lg"
+          className="button-primary flex items-center justify-center"
         >
           <Send size={18} />
         </button>
-        <label className="p-2 bg-gray-200 rounded-lg cursor-pointer">
+        <label className="button-secondary flex items-center justify-center cursor-pointer">
           <FileUp size={18} />
           <input
             type="file"
@@ -204,7 +208,7 @@ const WeTheParentChat: React.FC = () => {
       </div>
 
       {suggestions.length > 0 && (
-        <ul className="absolute bottom-16 left-4 bg-white border rounded-lg shadow-lg w-64">
+        <ul className="absolute bottom-20 left-4 bg-white border rounded-lg shadow-lg w-64 z-10">
           {suggestions.map((s, idx) => (
             <li
               key={idx}
