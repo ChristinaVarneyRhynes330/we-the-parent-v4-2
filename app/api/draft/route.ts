@@ -2,83 +2,266 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { NextResponse } from 'next/server';
 
-export async function POST(request) {
-  const { caseName, caseNumber, reason, outcome, modelName, documentType } = await request.json();
+// Your personal case information for pre-filling templates
+const YOUR_CASE_INFO = {
+  caseNumber: "2024-DP-000587-XXDP-BC",
+  caseName: "Your Name v. Department of Children and Families",
+  circuit: "5th Judicial Circuit",
+  county: "Lake County", // Update with your county
+  division: "Dependency Division" // Update with your division
+};
 
-  if (!caseName || !caseNumber || !documentType || !modelName) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+// Common motion templates for your use
+const MOTION_TEMPLATES = {
+  visitation: {
+    title: "Motion for Increased Visitation",
+    commonReasons: [
+      "Successfully completed parenting classes",
+      "Secured stable housing",
+      "Completed substance abuse treatment",
+      "Maintained consistent employment",
+      "Demonstrated positive interaction during supervised visits"
+    ]
+  },
+  modification: {
+    title: "Motion to Modify Case Plan",
+    commonReasons: [
+      "Changed circumstances requiring plan adjustment",
+      "Completion of required services ahead of schedule",
+      "New evidence supporting modification",
+      "Medical or health-related changes"
+    ]
+  },
+  reunification: {
+    title: "Motion for Reunification",
+    commonReasons: [
+      "Substantial compliance with case plan",
+      "Completion of all required services",
+      "Demonstrated ability to provide safe environment",
+      "Strong parent-child relationship maintained"
+    ]
   }
+};
 
-  let prompt;
-  // Construct the prompt based on the document type
-  switch (documentType) {
-    case 'Motion':
-      prompt = `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a Motion for Increased Visitation. The motion must be formatted with the following information in a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting:
-        Case Name: ${caseName}
-        Case Number: ${caseNumber}
-        Court: [Insert Court/Division manually]
-        
-        The body of the motion should include:
-        1. A brief introduction identifying the parent and the purpose of the motion.
-        2. A section titled 'Statement of Facts' that details the progress made by the parent. Use the following facts: ${reason}.
-        3. A section titled 'Prayer for Relief' that clearly states the requested action from the court. Use the following requested outcome: ${outcome}.
-        4. A space for the parent's signature, printed name, address, and phone number, followed by a 'Certificate of Service' section.
+interface DraftRequest {
+  caseName?: string;
+  caseNumber?: string;
+  reason: string;
+  outcome: string;
+  modelName: 'gemini-pro' | 'gpt-4o';
+  documentType: 'Motion' | 'Affidavit' | 'Objection';
+}
 
-        Ensure the tone is formal and respectful, as would be expected in a legal document. Do not provide any legal advice, just draft the content based on the provided facts.`;
-      break;
-
-    case 'Affidavit':
-      prompt = `As an AI legal drafting assistant, draft a sworn Affidavit for a pro se parent. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting.
-        Case Name: ${caseName}
-        Case Number: ${caseNumber}
-        Court: [Insert Court/Division manually]
-
-        The body of the affidavit should begin with a sworn statement from the affiant, followed by numbered paragraphs containing the facts provided below.
-        Affiant: ${outcome}
-        Statement of Facts: ${reason}
-        
-        Ensure the document is notarized with a signature line for the affiant and a notary public. Do not provide legal advice, just draft the document based on the facts.`;
-      break;
-
-    case 'Objection':
-      prompt = `As an AI legal drafting assistant, draft an Objection for a pro se parent. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting.
-        Case Name: ${caseName}
-        Case Number: ${caseNumber}
-        Court: [Insert Court/Division manually]
-
-        The body should clearly state the objection based on the reason and legal basis provided below.
-        Reason for Objection: ${reason}
-        Legal Basis: ${outcome}
-        
-        Ensure the document is formatted for a court filing with a signature line for the parent. Do not provide legal advice, just draft the content.`;
-      break;
-
-    default:
-      return NextResponse.json({ error: 'Unsupported document type.' }, { status: 400 });
-  }
-
+export async function POST(request: Request) {
   try {
-    let text;
-    if (modelName === 'gemini-pro') {
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const body: DraftRequest = await request.json();
+    
+    // Validate required fields
+    if (!body.documentType || !body.modelName || !body.reason || !body.outcome) {
+      return NextResponse.json({ 
+        error: 'Missing required fields. Need: documentType, modelName, reason, outcome' 
+      }, { status: 400 });
+    }
+
+    // Use your case info as defaults if not provided
+    const caseName = body.caseName || YOUR_CASE_INFO.caseName;
+    const caseNumber = body.caseNumber || YOUR_CASE_INFO.caseNumber;
+
+    let prompt: string;
+    
+    // Construct the prompt based on the document type
+    switch (body.documentType) {
+      case 'Motion':
+        prompt = `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a professional motion. The motion must be formatted with the following information in a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting:
+
+IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
+IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
+${YOUR_CASE_INFO.division.toUpperCase()}
+
+Case Name: ${caseName}
+Case Number: ${caseNumber}
+
+The body of the motion should include:
+
+1. A proper introduction identifying the parent/petitioner and the specific purpose of the motion
+
+2. A section titled 'BACKGROUND' providing relevant case context
+
+3. A section titled 'STATEMENT OF FACTS' that details the progress made by the parent, using these specific facts: ${body.reason}
+
+4. A section titled 'LEGAL ARGUMENT' citing relevant Florida Statutes (particularly Chapter 39) and case law supporting the motion
+
+5. A section titled 'PRAYER FOR RELIEF' that clearly states the requested action from the court: ${body.outcome}
+
+6. Proper signature blocks with spaces for:
+   - Parent's signature and printed name
+   - Address and phone number
+   - Florida Bar number (if applicable) or "Pro Se"
+   - Date line
+
+7. A 'CERTIFICATE OF SERVICE' section stating how copies were served on all parties
+
+Ensure the tone is formal, respectful, and professional as expected in legal documents. Use proper legal formatting with numbered paragraphs where appropriate. Do not provide legal advice, just draft the content based on the provided facts.`;
+        break;
+
+      case 'Affidavit':
+        prompt = `As an AI legal drafting assistant, draft a sworn Affidavit for a pro se parent in a Florida juvenile dependency case. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure.
+
+IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
+IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
+${YOUR_CASE_INFO.division.toUpperCase()}
+
+Case Name: ${caseName}
+Case Number: ${caseNumber}
+
+The body of the affidavit should include:
+
+1. A proper title: "AFFIDAVIT OF [AFFIANT NAME]"
+
+2. An introduction stating: "STATE OF FLORIDA, COUNTY OF ${YOUR_CASE_INFO.county.toUpperCase()}"
+
+3. A sworn statement beginning with: "I, [NAME], being first duly sworn, depose and say:"
+
+4. Numbered paragraphs containing the facts: ${body.reason}
+
+5. A statement regarding the affiant's personal knowledge: ${body.outcome}
+
+6. A closing statement: "Further Affiant sayeth naught."
+
+7. Signature lines for:
+   - Affiant signature and printed name
+   - Date
+   - Notary public signature, printed name, and seal
+   - Notary commission expiration date
+
+Ensure the document follows proper affidavit format with sworn language. Do not provide legal advice, just draft the document based on the facts provided.`;
+        break;
+
+      case 'Objection':
+        prompt = `As an AI legal drafting assistant, draft a formal Objection for a pro se parent in a Florida juvenile dependency case. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure.
+
+IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
+IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
+${YOUR_CASE_INFO.division.toUpperCase()}
+
+Case Name: ${caseName}
+Case Number: ${caseNumber}
+
+The objection should include:
+
+1. A clear title: "OBJECTION TO [SPECIFY WHAT IS BEING OBJECTED TO]"
+
+2. An introduction identifying the objecting party
+
+3. A section titled 'BASIS FOR OBJECTION' clearly stating the grounds for objection: ${body.reason}
+
+4. A section titled 'LEGAL AUTHORITY' citing relevant legal principles, rules of evidence, or statutory authority: ${body.outcome}
+
+5. A section titled 'PRAYER FOR RELIEF' requesting the court's action
+
+6. Proper signature blocks including:
+   - Parent's signature and printed name
+   - Address and phone number
+   - "Pro Se" designation
+   - Date
+
+7. Certificate of Service section
+
+Ensure the document is formatted for immediate court filing with proper legal formatting. The tone should be respectful but firm. Do not provide legal advice, just draft the content based on the information provided.`;
+        break;
+
+      default:
+        return NextResponse.json({ 
+          error: 'Unsupported document type. Supported types: Motion, Affidavit, Objection' 
+        }, { status: 400 });
+    }
+
+    let text: string;
+    
+    // Check for required API keys
+    if (body.modelName === 'gemini-pro' && !process.env.GOOGLE_API_KEY) {
+      return NextResponse.json({ 
+        error: 'Google API key not configured' 
+      }, { status: 500 });
+    }
+    
+    if (body.modelName === 'gpt-4o' && !process.env.OPENAI_API_KEY) {
+      return NextResponse.json({ 
+        error: 'OpenAI API key not configured' 
+      }, { status: 500 });
+    }
+
+    // Generate document using selected AI model
+    if (body.modelName === 'gemini-pro') {
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       text = response.text();
-    } else if (modelName === 'gpt-4o') {
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    } else if (body.modelName === 'gpt-4o') {
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }]
+        messages: [{ 
+          role: "user", 
+          content: prompt 
+        }],
+        temperature: 0.7,
+        max_tokens: 4000
       });
-      text = completion.choices[0].message.content;
+      text = completion.choices[0]?.message?.content || '';
     } else {
-      return NextResponse.json({ error: 'Unsupported AI model.' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Unsupported AI model. Use "gemini-pro" or "gpt-4o"' 
+      }, { status: 400 });
     }
 
-    return NextResponse.json({ draft: text });
-  } catch (error) {
+    if (!text) {
+      return NextResponse.json({ 
+        error: 'Failed to generate document content' 
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      draft: text,
+      caseInfo: {
+        caseNumber: caseNumber,
+        caseName: caseName,
+        circuit: YOUR_CASE_INFO.circuit,
+        county: YOUR_CASE_INFO.county
+      },
+      documentType: body.documentType,
+      generatedAt: new Date().toISOString()
+    });
+
+  } catch (error: any) {
     console.error("AI Generation Error:", error);
-    return NextResponse.json({ error: 'Failed to generate document.' }, { status: 500 });
+    
+    // Handle specific API errors
+    if (error.message?.includes('API key')) {
+      return NextResponse.json({ 
+        error: 'API key configuration error. Check your environment variables.' 
+      }, { status: 500 });
+    }
+    
+    if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+      return NextResponse.json({ 
+        error: 'API rate limit exceeded. Please try again later.' 
+      }, { status: 429 });
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to generate document. Please try again.' 
+    }, { status: 500 });
   }
+}
+
+// GET endpoint to provide templates and case info
+export async function GET() {
+  return NextResponse.json({
+    caseInfo: YOUR_CASE_INFO,
+    templates: MOTION_TEMPLATES,
+    supportedModels: ['gemini-pro', 'gpt-4o'],
+    supportedDocumentTypes: ['Motion', 'Affidavit', 'Objection']
+  });
 }

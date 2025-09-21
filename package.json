@@ -2,12 +2,18 @@
   "name": "we-the-parent-complete",
   "version": "0.1.0",
   "private": true,
+  "description": "AI-Augmented Self-Litigation Ecosystem for Pro Se Parental Defenders in Florida Juvenile Dependency Cases",
+  "author": "Your Name",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next dist",
+    "setup": "npm install && npm run type-check",
+    "deploy": "npm run build && npm run start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -30,6 +36,10 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/multer": "^1.4.12",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
@@ -43,5 +53,28 @@
   "overrides": {
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "legal",
+    "florida",
+    "juvenile-dependency",
+    "pro-se",
+    "ai-assistant",
+    "family-law",
+    "parental-rights",
+    "legal-documents",
+    "case-management"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "your-repository-url"
+  },
+  "bugs": {
+    "url": "your-repository-url/issues"
+  },
+  "homepage": "your-repository-url#readme"
 }

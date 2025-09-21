@@ -1,116 +1,195 @@
 'use client';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
+
+import { useState } from 'react';
 import { 
   Home, 
   FileText, 
-  Calendar, 
-  MessageSquare, 
   Search, 
   Scale, 
-  Clock,
-  Upload,
-  Settings
+  MessageCircle, 
+  Upload, 
+  BookOpen, 
+  Settings,
+  Menu,
+  X,
+  Calendar,
+  Users,
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
 
-interface NavItemProps {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  badge?: number;
+interface SidebarProps {
+  className?: string;
 }
 
-const navItems: NavItemProps[] = [
-  { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/documents', label: 'Documents', icon: FileText },
-  { href: '/timeline', label: 'Timeline', icon: Calendar, badge: 3 }, // Example: 3 upcoming events
-  { href: '/chat', label: 'AI Assistant', icon: MessageSquare },
-  { href: '/research', label: 'Research', icon: Search },
-  { href: '/evidence', label: 'Evidence', icon: Upload },
-  { href: '/deadlines', label: 'Deadlines', icon: Clock },
-  { href: '/legal-tools', label: 'Legal Tools', icon: Scale },
-];
+const Sidebar = ({ className = '' }: SidebarProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState('dashboard');
 
-const NavItem = ({ href, label, icon: Icon, badge }: NavItemProps) => {
-  const pathname = usePathname();
-  const isActive = pathname === href;
-  
+  const navigationItems = [
+    { id: 'dashboard', icon: Home, label: 'Dashboard', href: '/' },
+    { id: 'documents', icon: FileText, label: 'Documents', href: '/documents' },
+    { id: 'research', icon: Search, label: 'Legal Research', href: '/research' },
+    { id: 'constitutional', icon: Scale, label: 'Constitutional Law', href: '/constitutional' },
+    { id: 'chat', icon: MessageCircle, label: 'AI Assistant', href: '/chat' },
+    { id: 'calendar', icon: Calendar, label: 'Calendar', href: '/calendar' },
+    { id: 'evidence', icon: Upload, label: 'Evidence Manager', href: '/evidence' },
+    { id: 'guide', icon: BookOpen, label: 'Pro Se Guide', href: '/guide' },
+  ];
+
+  const quickTools = [
+    { id: 'emergency', icon: AlertTriangle, label: 'Emergency Motion', href: '/emergency' },
+    { id: 'compliance', icon: Clock, label: 'Compliance Check', href: '/compliance' },
+    { id: 'children', icon: Users, label: 'Children Info', href: '/children' },
+  ];
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const handleItemClick = (itemId: string) => {
+    setActiveItem(itemId);
+    setIsOpen(false); // Close mobile sidebar when item is clicked
+  };
+
   return (
-    <Link 
-      href={href} 
-      className={`nav-item group relative ${isActive ? 'active' : ''}`}
-      title={label}
-    >
-      <div className="relative">
-        <Icon className="h-6 w-6 transition-transform group-hover:scale-110" />
-        {badge && badge > 0 && (
-          <span className="absolute -top-2 -right-2 bg-garnet text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-bounce-soft">
-            {badge > 99 ? '99+' : badge}
-          </span>
-        )}
-      </div>
-      <span className="text-xs font-medium mt-1 opacity-90">{label}</span>
-      
-      {/* Active indicator */}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full -ml-3"></div>
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={toggleSidebar}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-charcoal-navy text-white rounded-lg shadow-lg"
+        aria-label="Toggle Menu"
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsOpen(false)}
+        />
       )}
-    </Link>
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed lg:sticky top-0 left-0 h-screen w-80 bg-charcoal-navy text-white z-40
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col
+          ${className}
+        `}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-brand rounded-lg flex items-center justify-center mr-3">
+              <Scale className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-header text-xl font-bold">We The Parent™</h1>
+              <p className="text-white/60 text-sm">Legal Assistant</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6">
+          {/* Main Navigation */}
+          <div className="px-6 mb-8">
+            <h2 className="text-white/60 text-xs uppercase font-semibold tracking-wider mb-4">
+              Main Navigation
+            </h2>
+            <div className="space-y-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeItem === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`
+                      nav-item w-full text-left px-4 py-3 rounded-lg transition-all duration-200
+                      flex items-center space-x-3
+                      ${isActive 
+                        ? 'bg-white/10 text-white shadow-lg' 
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quick Tools */}
+          <div className="px-6 mb-8">
+            <h2 className="text-white/60 text-xs uppercase font-semibold tracking-wider mb-4">
+              Quick Tools
+            </h2>
+            <div className="space-y-2">
+              {quickTools.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeItem === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item.id)}
+                    className={`
+                      nav-item w-full text-left px-4 py-3 rounded-lg transition-all duration-200
+                      flex items-center space-x-3
+                      ${isActive 
+                        ? 'bg-white/10 text-white shadow-lg' 
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </nav>
+
+        {/* Case Information Footer */}
+        <div className="p-6 border-t border-white/10">
+          <div className="bg-white/5 rounded-lg p-4">
+            <h3 className="font-semibold text-white mb-2">Active Case</h3>
+            <div className="space-y-1 text-sm">
+              <p className="text-white/80">2024-DP-000587-XXDP-BC</p>
+              <p className="text-white/60">5th Judicial Circuit</p>
+              <div className="flex items-center mt-2">
+                <div className="w-2 h-2 bg-olive-emerald rounded-full mr-2"></div>
+                <span className="text-white/80 text-xs">Active Status</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Link */}
+          <button
+            onClick={() => handleItemClick('settings')}
+            className={`
+              w-full mt-4 px-4 py-3 rounded-lg transition-all duration-200
+              flex items-center space-x-3
+              ${activeItem === 'settings'
+                ? 'bg-white/10 text-white shadow-lg' 
+                : 'text-white/70 hover:bg-white/10 hover:text-white'
+              }
+            `}
+          >
+            <Settings className="w-5 h-5 flex-shrink-0" />
+            <span className="font-medium">Settings</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 
-export default function Sidebar() {
-  return (
-    <aside className="w-24 bg-charcoal-navy flex-shrink-0 flex flex-col py-6 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-b from-charcoal-navy via-charcoal-navy to-dusty-mauve/20 opacity-50"></div>
-      
-      {/* Logo section */}
-      <div className="relative z-10 mb-8 flex flex-col items-center">
-        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-2 group hover:bg-white/20 transition-colors cursor-pointer">
-          {/* You can replace this with your actual logo */}
-          <div className="w-8 h-8 bg-gradient-brand rounded-full flex items-center justify-center">
-            <Scale className="w-4 h-4 text-white" />
-          </div>
-        </div>
-        <div className="text-center">
-          <h1 className="text-white text-xs font-header font-bold">We The</h1>
-          <h2 className="text-white text-xs font-header font-bold -mt-1">Parent</h2>
-        </div>
-      </div>
-
-      {/* Navigation items */}
-      <nav className="relative z-10 flex-1 flex flex-col space-y-2 px-3">
-        {navItems.map((item) => (
-          <NavItem key={item.label} {...item} />
-        ))}
-      </nav>
-
-      {/* Settings at bottom */}
-      <div className="relative z-10 mt-6 px-3">
-        <Link 
-          href="/settings" 
-          className="nav-item group"
-          title="Settings"
-        >
-          <Settings className="h-6 w-6 transition-transform group-hover:scale-110 group-hover:rotate-90" />
-          <span className="text-xs font-medium mt-1 opacity-90">Settings</span>
-        </Link>
-      </div>
-
-      {/* Bottom branding */}
-      <div className="relative z-10 mt-4 px-3">
-        <div className="text-center">
-          <div className="w-8 h-0.5 bg-white/20 mx-auto mb-2"></div>
-          <p className="text-white/50 text-xs font-medium">v1.0.0</p>
-          <p className="text-white/40 text-xs">Florida</p>
-        </div>
-      </div>
-
-      {/* Decorative elements */}
-      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-dusty-mauve/10 to-transparent"></div>
-    </aside>
-  );
-}
+export default Sidebar;
