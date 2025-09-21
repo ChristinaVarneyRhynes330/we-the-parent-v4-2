@@ -7,13 +7,15 @@ const models = [
   { name: 'Gemini Pro', value: 'gemini-pro' },
 ];
 
+interface ChatHeaderProps {
+  onModelChange: (model: string) => void;
+  currentModel: string;
+}
+
 export default function ChatHeader({
   onModelChange,
   currentModel,
-}: {
-  onModelChange: (model: string) => void;
-  currentModel: string;
-}) {
+}: ChatHeaderProps) {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (model: string) => {
@@ -30,7 +32,9 @@ export default function ChatHeader({
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-1 text-sm text-dusty-mauve hover:text-garnet"
+          className="flex items-center gap-1 text-sm text-dusty-mauve hover:text-garnet transition-colors"
+          aria-label="Select AI Model"
+          title="Select AI Model"
         >
           {models.find((m) => m.value === currentModel)?.name || 'Select Model'}
           <ChevronDown className="w-4 h-4" />
