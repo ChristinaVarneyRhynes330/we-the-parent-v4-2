@@ -2,207 +2,276 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Official Brand Palette */
-  --charcoal-navy: #1E1F2F;
-  --dusty-mauve: #A05C6F;
-  --warm-ivory: #FDF7F2;
-  --clay-pink: #D8A7A0;
-  --garnet: #B03A48;
-  --olive-emerald: #6B8E23;
-  --terracotta: #E2725B;
-  --slate-gray: #708090;
-  
-  /* Font Variables */
-  --font-header: 'DM Serif Display', serif;
-  --font-body: 'Work Sans', sans-serif;
-}
-
-body {
-  @apply bg-warm-ivory text-charcoal-navy font-body;
-  font-family: var(--font-body);
-}
-
-/* Brand Typography */
-.font-header {
-  font-family: var(--font-header);
-}
-
-.font-body {
-  font-family: var(--font-body);
-}
-
-/* Brand Color Classes */
-.text-charcoal-navy { color: var(--charcoal-navy); }
-.text-dusty-mauve { color: var(--dusty-mauve); }
-.text-warm-ivory { color: var(--warm-ivory); }
-.text-clay-pink { color: var(--clay-pink); }
-.text-garnet { color: var(--garnet); }
-.text-olive-emerald { color: var(--olive-emerald); }
-.text-terracotta { color: var(--terracotta); }
-.text-slate-gray { color: var(--slate-gray); }
-
-.bg-charcoal-navy { background-color: var(--charcoal-navy); }
-.bg-dusty-mauve { background-color: var(--dusty-mauve); }
-.bg-warm-ivory { background-color: var(--warm-ivory); }
-.bg-clay-pink { background-color: var(--clay-pink); }
-.bg-garnet { background-color: var(--garnet); }
-.bg-olive-emerald { background-color: var(--olive-emerald); }
-.bg-terracotta { background-color: var(--terracotta); }
-.bg-slate-gray { background-color: var(--slate-gray); }
-
-/* Border Colors */
-.border-charcoal-navy { border-color: var(--charcoal-navy); }
-.border-dusty-mauve { border-color: var(--dusty-mauve); }
-.border-clay-pink { border-color: var(--clay-pink); }
-.border-garnet { border-color: var(--garnet); }
-
-/* Ring Colors for Focus States */
-.ring-dusty-mauve { --tw-ring-color: var(--dusty-mauve); }
-.ring-garnet { --tw-ring-color: var(--garnet); }
-
-/* Component Styles */
-.card {
-  @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200;
-}
-
-.button-primary {
-  @apply bg-dusty-mauve hover:bg-garnet text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md;
-}
-
-.button-secondary {
-  @apply bg-white hover:bg-warm-ivory text-charcoal-navy px-4 py-2 rounded-lg font-medium border border-gray-200 transition-colors duration-200;
-}
-
-.button-tertiary {
-  @apply text-dusty-mauve hover:text-garnet px-4 py-2 rounded-lg font-medium transition-colors duration-200;
-}
-
-/* Status Indicators */
-.status-complete {
-  @apply bg-olive-emerald/10 text-olive-emerald px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.status-in-progress {
-  @apply bg-terracotta/10 text-terracotta px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.status-pending {
-  @apply bg-slate-gray/10 text-slate-gray px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.status-critical {
-  @apply bg-garnet/10 text-garnet px-3 py-1 rounded-full text-sm font-medium;
-}
-
-/* Form Elements */
-.form-input {
-  @apply border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-dusty-mauve focus:border-dusty-mauve transition-colors duration-200;
-}
-
-.form-label {
-  @apply text-charcoal-navy font-medium mb-2 block;
-}
-
-/* Navigation */
-.nav-item {
-  @apply flex flex-col items-center space-y-1 w-full py-3 rounded-lg transition-all duration-200;
-}
-
-.nav-item.active {
-  @apply bg-white/10 text-white;
-}
-
-.nav-item:not(.active) {
-  @apply text-white/70 hover:bg-white/10 hover:text-white;
-}
-
-/* Chat Styles */
-.dot-flashing {
-  position: relative;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: var(--dusty-mauve);
-  color: var(--dusty-mauve);
-  animation: dot-flashing 1.4s infinite ease-in-out;
-  animation-fill-mode: both;
-  margin-left: 1rem;
-}
-
-.dot-flashing::before,
-.dot-flashing::after {
-  content: '';
-  display: inline-block;
-  position: absolute;
-  top: 0;
-}
-
-.dot-flashing::before {
-  left: -15px;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: var(--dusty-mauve);
-  color: var(--dusty-mauve);
-  animation: dot-flashing 1.4s infinite ease-in-out;
-  animation-delay: -0.32s;
-}
-
-.dot-flashing::after {
-  left: 15px;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: var(--dusty-mauve);
-  color: var(--dusty-mauve);
-  animation: dot-flashing 1.4s infinite ease-in-out;
-  animation-delay: 0.16s;
-}
-
-@keyframes dot-flashing {
-  0%, 80%, 100% {
-    opacity: 0.2;
-    transform: scale(0.8);
+@layer base {
+  :root {
+    /* Official Brand Palette */
+    --charcoal-navy: #1E1F2F;
+    --dusty-mauve: #A05C6F;
+    --warm-ivory: #FDF7F2;
+    --clay-pink: #D8A7A0;
+    --garnet: #B03A48;
+    --olive-emerald: #6B8E23;
+    --terracotta: #E2725B;
+    --slate-gray: #708090;
+    
+    /* Font Variables */
+    --font-header: 'DM Serif Display', serif;
+    --font-body: 'Work Sans', sans-serif;
   }
-  40% {
-    opacity: 1;
-    transform: scale(1);
+
+  * {
+    border-color: theme('colors.slate.200');
+  }
+
+  body {
+    @apply bg-warm-ivory text-charcoal-navy font-body antialiased;
+    font-family: var(--font-body);
+  }
+
+  html {
+    font-family: var(--font-body);
   }
 }
 
-/* Progress Bars */
-.progress-bar {
-  @apply w-full bg-gray-200 rounded-full h-2;
+@layer components {
+  /* Brand Typography */
+  .font-header {
+    font-family: var(--font-header) !important;
+  }
+
+  .font-body {
+    font-family: var(--font-body) !important;
+  }
+
+  /* Component Styles */
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200;
+  }
+
+  .button-primary {
+    @apply bg-dusty-mauve hover:bg-garnet text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .button-secondary {
+    @apply bg-white hover:bg-warm-ivory text-charcoal-navy px-4 py-2 rounded-lg font-medium border border-gray-200 transition-colors duration-200;
+  }
+
+  .button-tertiary {
+    @apply text-dusty-mauve hover:text-garnet px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  }
+
+  /* Status Indicators */
+  .status-complete {
+    @apply bg-olive-emerald/10 text-olive-emerald px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .status-in-progress {
+    @apply bg-terracotta/10 text-terracotta px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .status-pending {
+    @apply bg-slate-gray/10 text-slate-gray px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .status-critical {
+    @apply bg-garnet/10 text-garnet px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  /* Form Elements */
+  .form-input {
+    @apply border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-dusty-mauve focus:border-dusty-mauve transition-colors duration-200 bg-white;
+  }
+
+  .form-label {
+    @apply text-charcoal-navy font-medium mb-2 block;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply flex flex-col items-center space-y-1 w-full py-3 rounded-lg transition-all duration-200;
+  }
+
+  .nav-item.active {
+    @apply bg-white/10 text-white;
+  }
+
+  .nav-item:not(.active) {
+    @apply text-white/70 hover:bg-white/10 hover:text-white;
+  }
+
+  /* Progress Bars */
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2;
+  }
+
+  .progress-fill {
+    @apply h-2 rounded-full transition-all duration-300;
+  }
+
+  .progress-fill.complete {
+    @apply bg-olive-emerald;
+  }
+
+  .progress-fill.in-progress {
+    @apply bg-dusty-mauve;
+  }
+
+  .progress-fill.pending {
+    @apply bg-slate-gray;
+  }
+
+  /* Layout Utilities */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-header {
+    @apply font-header text-2xl lg:text-3xl text-charcoal-navy mb-6;
+  }
+
+  .section-subheader {
+    @apply font-header text-xl text-dusty-mauve mb-4;
+  }
 }
 
-.progress-fill {
-  @apply h-2 rounded-full transition-all duration-300;
-}
+@layer utilities {
+  /* Brand Color Classes - Force them to work */
+  .text-charcoal-navy { 
+    color: var(--charcoal-navy) !important; 
+  }
+  .text-dusty-mauve { 
+    color: var(--dusty-mauve) !important; 
+  }
+  .text-warm-ivory { 
+    color: var(--warm-ivory) !important; 
+  }
+  .text-clay-pink { 
+    color: var(--clay-pink) !important; 
+  }
+  .text-garnet { 
+    color: var(--garnet) !important; 
+  }
+  .text-olive-emerald { 
+    color: var(--olive-emerald) !important; 
+  }
+  .text-terracotta { 
+    color: var(--terracotta) !important; 
+  }
+  .text-slate-gray { 
+    color: var(--slate-gray) !important; 
+  }
 
-.progress-fill.complete {
-  @apply bg-olive-emerald;
-}
+  .bg-charcoal-navy { 
+    background-color: var(--charcoal-navy) !important; 
+  }
+  .bg-dusty-mauve { 
+    background-color: var(--dusty-mauve) !important; 
+  }
+  .bg-warm-ivory { 
+    background-color: var(--warm-ivory) !important; 
+  }
+  .bg-clay-pink { 
+    background-color: var(--clay-pink) !important; 
+  }
+  .bg-garnet { 
+    background-color: var(--garnet) !important; 
+  }
+  .bg-olive-emerald { 
+    background-color: var(--olive-emerald) !important; 
+  }
+  .bg-terracotta { 
+    background-color: var(--terracotta) !important; 
+  }
+  .bg-slate-gray { 
+    background-color: var(--slate-gray) !important; 
+  }
 
-.progress-fill.in-progress {
-  @apply bg-dusty-mauve;
-}
+  /* Border Colors */
+  .border-charcoal-navy { 
+    border-color: var(--charcoal-navy) !important; 
+  }
+  .border-dusty-mauve { 
+    border-color: var(--dusty-mauve) !important; 
+  }
+  .border-clay-pink { 
+    border-color: var(--clay-pink) !important; 
+  }
+  .border-garnet { 
+    border-color: var(--garnet) !important; 
+  }
 
-.progress-fill.pending {
-  @apply bg-slate-gray;
-}
+  /* Ring Colors for Focus States */
+  .ring-dusty-mauve { 
+    --tw-ring-color: var(--dusty-mauve) !important; 
+  }
+  .ring-garnet { 
+    --tw-ring-color: var(--garnet) !important; 
+  }
 
-/* Layout Utilities */
-.page-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-}
+  /* Hover states */
+  .hover\:bg-dusty-mauve:hover {
+    background-color: var(--dusty-mauve) !important;
+  }
+  .hover\:bg-garnet:hover {
+    background-color: var(--garnet) !important;
+  }
+  .hover\:text-garnet:hover {
+    color: var(--garnet) !important;
+  }
 
-.section-header {
-  @apply font-header text-2xl lg:text-3xl text-charcoal-navy mb-6;
-}
+  /* Chat Styles */
+  .dot-flashing {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: var(--dusty-mauve);
+    color: var(--dusty-mauve);
+    animation: dot-flashing 1.4s infinite ease-in-out;
+    animation-fill-mode: both;
+    margin-left: 1rem;
+  }
 
-.section-subheader {
-  @apply font-header text-xl text-dusty-mauve mb-4;
+  .dot-flashing::before,
+  .dot-flashing::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: 0;
+  }
+
+  .dot-flashing::before {
+    left: -15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: var(--dusty-mauve);
+    color: var(--dusty-mauve);
+    animation: dot-flashing 1.4s infinite ease-in-out;
+    animation-delay: -0.32s;
+  }
+
+  .dot-flashing::after {
+    left: 15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: var(--dusty-mauve);
+    color: var(--dusty-mauve);
+    animation: dot-flashing 1.4s infinite ease-in-out;
+    animation-delay: 0.16s;
+  }
+
+  @keyframes dot-flashing {
+    0%, 80%, 100% {
+      opacity: 0.2;
+      transform: scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 /* Responsive Design */

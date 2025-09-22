@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createSSRClient } from '@/lib/supabase/server'; // Using the server client
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // GET handler to fetch all events for a given case
 export async function GET(request: NextRequest) {
@@ -10,7 +15,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'case_id is required' }, { status: 400 });
   }
 
-  const supabase = await createSSRClient();
   try {
     const { data, error } = await supabase
       .from('events')
@@ -33,16 +37,17 @@ export async function GET(request: NextRequest) {
 
 // POST handler to create a new event
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { case_id, title, event_type, event_date, notes } = body;
-
-  // Basic validation for required fields
-  if (!case_id || !title || !event_date) {
-    return NextResponse.json({ error: 'Missing required fields: case_id, title, and event_date' }, { status: 400 });
-  }
-
-  const supabase = await createSSRClient();
   try {
+    const body = await request.json();
+    const { case_id, title, event_type, event_date, notes } = body;
+
+    // Basic validation for required fields
+    if (!case_id || !title || !event_date) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: case_id, title, and event_date' 
+      }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('events')
       .insert({

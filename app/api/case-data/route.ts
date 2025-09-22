@@ -2,16 +2,32 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-  );
+  // Add proper environment variable validation
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const { data, error } = await supabase.from('cases').select('*');
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json(
+      { error: 'Missing Supabase environment variables' }, 
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json(data, { status: 200 });
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  try {
+    const { data, error } = await supabase.from('cases').select('*');
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (error: any) {
+    console.error('Database error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Database query failed' }, 
+      { status: 500 }
+    );
+  }
 }

@@ -1,181 +1,98 @@
-[{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "2305",
-	"severity": 8,
-	"message": "Module '\"react\"' has no exported member 'useEffect'.",
-	"source": "ts",
-	"startLineNumber": 2,
-	"startColumn": 10,
-	"endLineNumber": 2,
-	"endColumn": 19,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "2305",
-	"severity": 8,
-	"message": "Module '\"react\"' has no exported member 'useState'.",
-	"source": "ts",
-	"startLineNumber": 2,
-	"startColumn": 21,
-	"endLineNumber": 2,
-	"endColumn": 29,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 39,
-	"startColumn": 12,
-	"endLineNumber": 39,
-	"endColumn": 42,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 39,
-	"startColumn": 74,
-	"endLineNumber": 39,
-	"endColumn": 80,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 43,
-	"startColumn": 5,
-	"endLineNumber": 43,
-	"endColumn": 32,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 44,
-	"startColumn": 7,
-	"endLineNumber": 44,
-	"endColumn": 60,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 44,
-	"startColumn": 69,
-	"endLineNumber": 44,
-	"endColumn": 74,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 45,
-	"startColumn": 7,
-	"endLineNumber": 45,
-	"endColumn": 38,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7006",
-	"severity": 8,
-	"message": "Parameter 'd' implicitly has an 'any' type.",
-	"source": "ts",
-	"startLineNumber": 47,
-	"startColumn": 21,
-	"endLineNumber": 47,
-	"endColumn": 22,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 47,
-	"startColumn": 27,
-	"endLineNumber": 47,
-	"endColumn": 42,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 47,
-	"startColumn": 55,
-	"endLineNumber": 47,
-	"endColumn": 60,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 49,
-	"startColumn": 11,
-	"endLineNumber": 49,
-	"endColumn": 15,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 49,
-	"startColumn": 48,
-	"endLineNumber": 49,
-	"endColumn": 53,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 51,
-	"startColumn": 7,
-	"endLineNumber": 51,
-	"endColumn": 12,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/jessi/Desktop/wetheparent-v4-app/components/DocumentsList.tsx",
-	"owner": "typescript",
-	"code": "7026",
-	"severity": 8,
-	"message": "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.",
-	"source": "ts",
-	"startLineNumber": 52,
-	"startColumn": 5,
-	"endLineNumber": 52,
-	"endColumn": 11,
-	"origin": "extHost1"
-}]
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { FileText, Download, Eye, Trash2 } from 'lucide-react';
+
+interface Document {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  lastModified: string;
+  size: string;
+}
+
+interface DocumentsListProps {
+  documents?: Document[];
+  onDocumentClick?: (document: Document) => void;
+  onDocumentDelete?: (documentId: string) => void;
+}
+
+const DocumentsList: React.FC<DocumentsListProps> = ({
+  documents = [],
+  onDocumentClick,
+  onDocumentDelete
+}) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleDocumentClick = (doc: Document) => {
+    if (onDocumentClick) {
+      onDocumentClick(doc);
+    }
+  };
+
+  const handleDocumentDelete = (docId: string) => {
+    if (onDocumentDelete) {
+      onDocumentDelete(docId);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-20 bg-gray-200 rounded"></div>
+        <div className="h-20 bg-gray-200 rounded"></div>
+        <div className="h-20 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {documents.length === 0 ? (
+        <div className="text-center py-8">
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No documents found</p>
+        </div>
+      ) : (
+        documents.map((doc: Document) => (
+          <div key={doc.id} className="card hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <FileText className="w-5 h-5 text-dusty-mauve" />
+                <div>
+                  <h3 className="font-medium text-charcoal-navy">{doc.name}</h3>
+                  <p className="text-sm text-slate-gray">{doc.type} • {doc.lastModified}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleDocumentClick(doc)}
+                  className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg transition-colors"
+                  title="View document"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  className="p-2 text-olive-emerald hover:bg-olive-emerald/10 rounded-lg transition-colors"
+                  title="Download document"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDocumentDelete(doc.id)}
+                  className="p-2 text-garnet hover:bg-garnet/10 rounded-lg transition-colors"
+                  title="Delete document"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+export default DocumentsList;

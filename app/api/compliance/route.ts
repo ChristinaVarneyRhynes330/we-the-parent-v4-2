@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
 // Mock function to simulate an AI-powered compliance check.
 // In a real implementation, this would use a language model to analyze the text.
-const performComplianceCheck = (documentType, draft) => {
+const performComplianceCheck = (documentType: string, draft: string): string => {
   let report = `Compliance Report for ${documentType}:\n\n`;
   let passed = true;
 
@@ -42,14 +42,14 @@ const performComplianceCheck = (documentType, draft) => {
   return report;
 };
 
-export async function POST(request) {
-  const { documentType, draft } = await request.json();
-
-  if (!documentType || !draft) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-  }
-
+export async function POST(request: NextRequest) {
   try {
+    const { documentType, draft } = await request.json();
+
+    if (!documentType || !draft) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
     const complianceReport = performComplianceCheck(documentType, draft);
     return NextResponse.json({ report: complianceReport });
   } catch (error) {

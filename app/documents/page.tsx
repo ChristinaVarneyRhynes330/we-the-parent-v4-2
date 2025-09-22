@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // FIX: Add React to the import
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { FileText, Upload, Search, Filter, Download, Eye, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { CASE_ID, DOCUMENT_TYPES } from '@/constants/case';
@@ -45,7 +45,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -90,7 +90,7 @@ export default function DocumentsPage() {
     });
   };
 
-  const filteredDocuments = documents.filter((doc: Document) => { // FIX: Add type to 'doc'
+  const filteredDocuments = documents.filter((doc: Document) => {
     const matchesSearch = doc.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (doc.summary && doc.summary.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filterType === 'all' || doc.document_type === filterType;
@@ -146,7 +146,7 @@ export default function DocumentsPage() {
                 placeholder="Search documents..."
                 className="form-input pl-10 w-full"
                 value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="relative">
@@ -154,10 +154,10 @@ export default function DocumentsPage() {
               <select
                 className="form-input pl-10 pr-8"
                 value={filterType}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
               >
                 <option value="all">All Types</option>
-                {Object.values(DOCUMENT_TYPES).map((type: any, index: number) => (
+                {Object.values(DOCUMENT_TYPES).map((type: string, index: number) => (
                   <option key={index} value={type}>{type}</option>
                 ))}
               </select>

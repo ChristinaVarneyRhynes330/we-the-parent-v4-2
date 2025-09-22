@@ -9,19 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Your custom brand colors
-        'charcoal-navy': '#1E1F2F',
-        'dusty-mauve': '#A05C6F',
-        'warm-ivory': '#FDF7F2',
-        'clay-pink': '#D8A7A0',
-        'garnet': '#B03A48',
-        'olive-emerald': '#6B8E23',
-        'terracotta': '#E2725B',
-        'slate-gray': '#708090',
+        // Custom brand colors - matching CSS variables
+        'charcoal-navy': 'var(--charcoal-navy, #1E1F2F)',
+        'dusty-mauve': 'var(--dusty-mauve, #A05C6F)',
+        'warm-ivory': 'var(--warm-ivory, #FDF7F2)',
+        'clay-pink': 'var(--clay-pink, #D8A7A0)',
+        'garnet': 'var(--garnet, #B03A48)',
+        'olive-emerald': 'var(--olive-emerald, #6B8E23)',
+        'terracotta': 'var(--terracotta, #E2725B)',
+        'slate-gray': 'var(--slate-gray, #708090)',
       },
       fontFamily: {
-        'header': ['var(--font-header)', 'serif'],
-        'body': ['var(--font-body)', 'sans-serif'],
+        'header': ['var(--font-header)', 'DM Serif Display', 'serif'],
+        'body': ['var(--font-body)', 'Work Sans', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-brand': 'linear-gradient(135deg, #A05C6F 0%, #B03A48 100%)',
@@ -53,6 +53,36 @@ const config: Config = {
     },
   },
   plugins: [],
+  // Ensure custom colors take precedence
+  important: false,
+  prefix: '',
+  separator: ':',
+  safelist: [
+    // Ensure custom colors are not purged
+    'text-charcoal-navy',
+    'text-dusty-mauve',
+    'text-warm-ivory',
+    'text-clay-pink',
+    'text-garnet',
+    'text-olive-emerald',
+    'text-terracotta',
+    'text-slate-gray',
+    'bg-charcoal-navy',
+    'bg-dusty-mauve',
+    'bg-warm-ivory',
+    'bg-clay-pink',
+    'bg-garnet',
+    'bg-olive-emerald',
+    'bg-terracotta',
+    'bg-slate-gray',
+    'border-charcoal-navy',
+    'border-dusty-mauve',
+    'border-clay-pink',
+    'border-garnet',
+    'hover:bg-dusty-mauve',
+    'hover:bg-garnet',
+    'hover:text-garnet',
+  ]
 }
 
 export default config

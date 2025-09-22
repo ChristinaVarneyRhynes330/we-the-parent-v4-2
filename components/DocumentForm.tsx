@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react'; // FIX: Add React to the import
+import React, { useState } from 'react';
 import { FileText, Download, Copy, Eye, Loader2 } from 'lucide-react';
 
 // Your personal case information - pre-filled for convenience
@@ -31,7 +31,6 @@ const QUICK_TEMPLATES = {
   }
 };
 
-// FIX: Define interfaces for props and form state
 interface DocumentFormProps {
   onDocumentGenerated?: (document: string, info: any) => void;
 }
@@ -62,7 +61,7 @@ const DocumentForm = ({ onDocumentGenerated }: DocumentFormProps) => {
 
   const handleTemplateSelect = (templateKey: keyof typeof QUICK_TEMPLATES) => {
     const template = QUICK_TEMPLATES[templateKey];
-    setFormData((prev: FormDataState) => ({ // FIX: Add type to 'prev'
+    setFormData((prev: FormDataState) => ({
       ...prev,
       reason: template.reason,
       outcome: template.outcome
@@ -70,7 +69,7 @@ const DocumentForm = ({ onDocumentGenerated }: DocumentFormProps) => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev: FormDataState) => ({ // FIX: Add type to 'prev'
+    setFormData((prev: FormDataState) => ({
       ...prev,
       [field]: value
     }));
