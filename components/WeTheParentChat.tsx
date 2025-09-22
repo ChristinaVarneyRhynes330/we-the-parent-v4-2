@@ -1,33 +1,35 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, FileText, Upload, Loader2 } from 'lucide-react';
 
-// Define types for type safety
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'assistant';
+  role: 'user' | 'assistant';
   timestamp: Date;
+  type?: 'text' | 'document' | 'analysis';
+}
+
+interface AnalysisResult {
+  documentType: string;
+  summary: string;
 }
 
 export default function WeTheParentChat() {
-  // State management
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hello! I\'m your WeTheParent AI assistant. I can help you with legal questions, document analysis, and case management. How can I assist you today?',
-      sender: 'assistant',
-      timestamp: new Date()
+      content: "Hello! I'm your AI legal assistant. I can help you with:\n\n• Analyzing legal documents\n• Answering questions about your case\n• Explaining legal procedures\n• Drafting documents\n• Research assistance\n\nHow can I help you today?",
+      role: 'assistant',
+      timestamp: new Date(),
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -36,70 +38,144 @@ export default function WeTheParentChat() {
     scrollToBottom();
   }, [messages]);
 
-  // Handle sending messages
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage.trim(),
-      sender: 'user',
-      timestamp: new Date()
+      content: inputMessage,
+      role: 'user',
+      timestamp: new Date(),
     };
 
-    // Add user message immediately
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      // Simulate AI response (replace with actual API call)
-      const response = await simulateAIResponse(inputMessage);
+      // Simple response logic - in a real app, this would call your AI API
+      const response = await generateResponse(inputMessage);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: response,
-        sender: 'assistant',
-        timestamp: new Date()
+        role: 'assistant',
+        timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error generating response:', error);
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: 'I apologize, but I encountered an error processing your request. Please try again.',
-        sender: 'assistant',
-        timestamp: new Date()
+        content: "I apologize, but I'm having trouble responding right now. Please try again later or contact support if the issue persists.",
+        role: 'assistant',
+        timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Simulate AI response (replace with actual API call later)
-  const simulateAIResponse = async (userInput: string): Promise<string> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-
-    // Simple response logic (replace with actual AI integration)
-    const lowerInput = userInput.toLowerCase();
+  const generateResponse = async (message: string): Promise<string> => {
+    // Simple keyword-based responses - replace with actual AI integration
+    const lowerMessage = message.toLowerCase();
     
-    if (lowerInput.includes('document') || lowerInput.includes('file')) {
-      return 'I can help you with document management. You can upload documents through the Documents page, and I can analyze them for key information, dates, and legal requirements. What type of document do you need help with?';
-    } else if (lowerInput.includes('court') || lowerInput.includes('hearing')) {
-      return 'Regarding court proceedings, I can help you understand what to expect, prepare questions, and organize your documentation. Remember, I provide information to help you understand the process, but you should always consult with your attorney for legal advice.';
-    } else if (lowerInput.includes('deadline') || lowerInput.includes('due date')) {
-      return 'I can help you track important deadlines and dates. Make sure to keep all court documents organized and note any response deadlines. Would you like help setting up reminders for upcoming dates?';
-    } else if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
-      return 'Hello! I\'m here to help with your family law case. I can assist with document organization, deadline tracking, and general legal information. What would you like to work on today?';
-    } else {
-      return 'I understand you\'re asking about your case. I can help with document analysis, timeline organization, deadline tracking, and general legal information. Could you provide more specific details about what you need assistance with?';
+    if (lowerMessage.includes('motion') || lowerMessage.includes('document')) {
+      return "I can help you with document drafting! You can use our Document Drafting tool from the sidebar to create motions, affidavits, or objections. Would you like me to guide you through the process?";
+    }
+    
+    if (lowerMessage.includes('hearing') || lowerMessage.includes('court')) {
+      return "For court hearings, make sure to:\n\n• Arrive 15 minutes early\n• Dress professionally\n• Bring all relevant documents\n• Address the judge as 'Your Honor'\n• Speak clearly and respectfully\n\nDo you have a specific question about your upcoming hearing?";
+    }
+    
+    if (lowerMessage.includes('case plan') || lowerMessage.includes('dcf')) {
+      return "Case plan compliance is crucial for reunification. Focus on:\n\n• Complete all required services\n• Attend all appointments\n• Document your progress\n• Maintain stable housing and employment\n• Follow all court orders\n\nWhat specific aspect of your case plan would you like help with?";
+    }
+    
+    if (lowerMessage.includes('rights') || lowerMessage.includes('parental')) {
+      return "Your parental rights are protected by the Constitution. Key rights include:\n\n• Due process in all proceedings\n• Right to legal representation\n• Right to be present at hearings\n• Right to appeal court decisions\n• Right to reunification services\n\nWould you like more information about any specific right?";
+    }
+    
+    return "I understand you're asking about: \"" + message + "\"\n\nI'm here to help with your legal questions. Could you provide more details about what specific information you need? I can assist with document drafting, case procedures, legal research, or general guidance about juvenile dependency cases in Florida.";
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsLoading(true);
+    
+    try {
+      // Read file content for analysis
+      const fileContent = await readFileContent(file);
+      
+      // Add user message showing file upload
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        content: `Uploaded document: ${file.name}`,
+        role: 'user',
+        timestamp: new Date(),
+        type: 'document'
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+
+      // Call document analysis API
+      const response = await fetch('/api/analyze-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: fileContent })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const analysis: AnalysisResult = data.analysis;
+        
+        const analysisMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `**Document Analysis Results:**\n\n**Type:** ${analysis.documentType}\n\n**Summary:** ${analysis.summary}\n\nWould you like me to help you with anything specific about this document?`,
+          role: 'assistant',
+          timestamp: new Date(),
+          type: 'analysis'
+        };
+
+        setMessages(prev => [...prev, analysisMessage]);
+      } else {
+        throw new Error('Document analysis failed');
+      }
+    } catch (error) {
+      console.error('Error analyzing document:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I had trouble analyzing that document. Please make sure it's a text-based file (PDF, DOC, TXT) and try again.",
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
-  // Handle Enter key press
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -107,115 +183,137 @@ export default function WeTheParentChat() {
     }
   };
 
-  // Format timestamp
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatMessage = (content: string) => {
+    // Simple markdown-like formatting
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br />');
   };
 
   return (
-    <div className="min-h-screen bg-warm-ivory">
-      <div className="max-w-4xl mx-auto h-screen flex flex-col">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-dusty-mauve rounded-full flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-charcoal-navy">
-                WeTheParent AI Assistant
-              </h1>
-              <p className="text-sm text-slate-gray">
-                Here to help with your family law case
-              </p>
-            </div>
+    <div className="flex flex-col h-full bg-white rounded-lg shadow-brand overflow-hidden">
+      {/* Chat Header */}
+      <div className="bg-charcoal-navy text-white p-4">
+        <div className="flex items-center gap-3">
+          <Bot className="w-6 h-6 text-dusty-mauve" />
+          <div>
+            <h2 className="font-semibold">AI Legal Assistant</h2>
+            <p className="text-sm text-warm-ivory/70">Florida Juvenile Dependency Specialist</p>
           </div>
         </div>
+      </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  message.sender === 'user'
-                    ? 'bg-dusty-mauve text-white'
-                    : 'bg-white text-charcoal-navy shadow-sm border'
-                }`}
-              >
-                <div className="flex items-start space-x-2">
-                  {message.sender === 'assistant' && (
-                    <Bot className="w-5 h-5 text-dusty-mauve mt-0.5 flex-shrink-0" />
-                  )}
-                  {message.sender === 'user' && (
-                    <User className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                  )}
-                  <div className="flex-1">
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender === 'user' ? 'text-white/70' : 'text-slate-gray'
-                    }`}>
-                      {formatTime(message.timestamp)}
-                    </p>
-                  </div>
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            {message.role === 'assistant' && (
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-dusty-mauve rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
               </div>
-            </div>
-          ))}
-          
-          {/* Loading indicator */}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white text-charcoal-navy shadow-sm border max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Bot className="w-5 h-5 text-dusty-mauve" />
-                  <div className="flex items-center space-x-1">
-                    <Loader2 className="w-4 h-4 animate-spin text-dusty-mauve" />
-                    <span className="text-sm text-slate-gray">Thinking...</span>
-                  </div>
+            )}
+            
+            <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+              message.role === 'user' 
+                ? 'bg-dusty-mauve text-white rounded-l-lg rounded-br-lg'
+                : 'bg-gray-100 text-charcoal-navy rounded-r-lg rounded-bl-lg'
+            } p-3`}>
+              {message.type === 'document' && (
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-xs font-medium">Document Uploaded</span>
                 </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Scroll anchor */}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="bg-white border-t p-4">
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message here... (Press Enter to send)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dusty-mauve focus:border-transparent resize-none"
-                rows={1}
-                disabled={isLoading}
+              )}
+              
+              <div 
+                dangerouslySetInnerHTML={{ 
+                  __html: formatMessage(message.content) 
+                }}
+                className="text-sm whitespace-pre-wrap"
               />
+              
+              <div className="text-xs opacity-70 mt-2">
+                {message.timestamp.toLocaleTimeString()}
+              </div>
             </div>
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
-              className="px-6 py-3 bg-dusty-mauve text-white rounded-lg hover:bg-dusty-mauve/90 focus:ring-2 focus:ring-dusty-mauve focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Send className="w-5 h-5" />
-            </button>
+
+            {message.role === 'user' && (
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-olive-emerald rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            )}
           </div>
+        ))}
+        
+        {isLoading && (
+          <div className="flex gap-3 justify-start">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-dusty-mauve rounded-full flex items-center justify-center">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            <div className="bg-gray-100 rounded-r-lg rounded-bl-lg p-3">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm text-slate-gray">Thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="border-t border-gray-200 p-4">
+        <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".pdf,.doc,.docx,.txt"
+            className="hidden"
+          />
           
-          {/* Usage tips */}
-          <div className="mt-3 text-xs text-slate-gray">
-            <p>💡 Try asking: "Help me organize my documents" or "What should I expect at my court hearing?"</p>
-          </div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="flex-shrink-0 p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg transition-colors disabled:opacity-50"
+            title="Upload document for analysis"
+          >
+            <Upload className="w-5 h-5" />
+          </button>
+          
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me about your case, legal procedures, or upload a document..."
+            disabled={isLoading}
+            className="flex-1 form-input"
+          />
+          
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isLoading}
+            className="flex-shrink-0 button-primary p-2 disabled:opacity-50"
+          >
+            <Send className="w-5 h-5" />
+          </button>
         </div>
+        
+        <p className="text-xs text-slate-gray mt-2 text-center">
+          This AI assistant provides general information and should not replace professional legal advice.
+        </p>
       </div>
     </div>
   );

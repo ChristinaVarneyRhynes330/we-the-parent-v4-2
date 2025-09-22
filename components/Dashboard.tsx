@@ -1,147 +1,112 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, Clock, TrendingUp, MessageSquare, CheckCircle, AlertCircle, Users } from 'lucide-react';
+import { Calendar, FileText, Users, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
-// Define interfaces for type safety
-interface CaseData {
-  totalDocuments: number;
-  upcomingDeadlines: number;
-  recentActivity: number;
-  caseStatus: string;
+interface CaseProgress {
+  task: string;
+  status: string;
+  progress: number;
 }
 
-interface RecentActivity {
-  id: string;
-  type: string;
-  description: string;
-  date: string;
-}
-
-interface UpcomingDeadline {
-  id: string;
+interface UpcomingEvent {
   title: string;
   date: string;
-  priority: 'high' | 'medium' | 'low';
+  daysRemaining: number;
+  type: 'critical' | 'important' | 'routine';
+}
+
+interface CurrentCase {
+  number: string;
+  nextHearing: string;
+  circuit: string;
+  progress: number;
+  daysRemaining: number;
+  status: string;
 }
 
 export default function Dashboard() {
-  // State management
-  const [caseData, setCaseData] = useState<CaseData>({
-    totalDocuments: 0,
-    upcomingDeadlines: 0,
-    recentActivity: 0,
-    caseStatus: 'Active'
-  });
-
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState<UpcomingDeadline[]>([]);
+  const [caseProgress, setCaseProgress] = useState<CaseProgress[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [currentCase, setCurrentCase] = useState<CurrentCase | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Simulate data loading (replace with real API calls later)
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Set mock data
-        setCaseData({
-          totalDocuments: 24,
-          upcomingDeadlines: 3,
-          recentActivity: 8,
-          caseStatus: 'Active'
-        });
-
-        setRecentActivities([
-          {
-            id: '1',
-            type: 'document',
-            description: 'New motion filed',
-            date: '2024-01-15'
-          },
-          {
-            id: '2',
-            type: 'message',
-            description: 'Message from attorney',
-            date: '2024-01-14'
-          },
-          {
-            id: '3',
-            type: 'deadline',
-            description: 'Response due reminder',
-            date: '2024-01-13'
-          }
-        ]);
-
-        setUpcomingDeadlines([
-          {
-            id: '1',
-            title: 'Motion Response Due',
-            date: '2024-01-20',
-            priority: 'high'
-          },
-          {
-            id: '2',
-            title: 'Discovery Deadline',
-            date: '2024-01-25',
-            priority: 'medium'
-          },
-          {
-            id: '3',
-            title: 'Court Hearing',
-            date: '2024-02-01',
-            priority: 'high'
-          }
-        ]);
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        setLoading(false);
-      }
-    };
-
     loadDashboardData();
   }, []);
 
-  // Helper functions
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+  const loadDashboardData = async () => {
+    try {
+      // Load static data (in a real app, this would come from APIs)
+      const caseProgressData = [
+        { "task": "Parenting Classes", "status": "Complete", "progress": 100 },
+        { "task": "Housing Stability", "status": "In Progress", "progress": 75 },
+        { "task": "Substance Abuse Program", "status": "In Progress", "progress": 60 },
+        { "task": "Mental Health Evaluation", "status": "Scheduled", "progress": 0 }
+      ];
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'text-red-600 bg-red-100';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'low':
-        return 'text-green-600 bg-green-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
+      const upcomingEventsData = [
+        { "title": "Adjudicatory Hearing", "date": "March 15, 2025 at 2:00 PM", "daysRemaining": 3, "type": "critical" as const },
+        { "title": "Supervised Visitation", "date": "March 20, 2025 at 10:00 AM", "daysRemaining": 8, "type": "routine" as const },
+        { "title": "Case Plan Review", "date": "March 25, 2025 at 1:30 PM", "daysRemaining": 13, "type": "important" as const },
+        { "title": "Judicial Review Hearing", "date": "April 10, 2025 at 9:00 AM", "daysRemaining": 29, "type": "important" as const }
+      ];
+
+      const currentCaseData = {
+        "number": "2024-DP-000587-XXDP-BC",
+        "nextHearing": "March 15, 2025",
+        "circuit": "5th Judicial Circuit",
+        "progress": 65,
+        "daysRemaining": 3,
+        "status": "Active"
+      };
+
+      setCaseProgress(caseProgressData);
+      setUpcomingEvents(upcomingEventsData);
+      setCurrentCase(currentCaseData);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Loading state
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'complete':
+        return 'text-olive-emerald bg-olive-emerald/10';
+      case 'in progress':
+        return 'text-dusty-mauve bg-dusty-mauve/10';
+      case 'scheduled':
+        return 'text-terracotta bg-terracotta/10';
+      default:
+        return 'text-slate-gray bg-slate-gray/10';
+    }
+  };
+
+  const getEventTypeColor = (type: string) => {
+    switch (type) {
+      case 'critical':
+        return 'border-l-garnet bg-garnet/5 text-garnet';
+      case 'important':
+        return 'border-l-dusty-mauve bg-dusty-mauve/5 text-dusty-mauve';
+      case 'routine':
+        return 'border-l-olive-emerald bg-olive-emerald/5 text-olive-emerald';
+      default:
+        return 'border-l-slate-gray bg-slate-gray/5 text-slate-gray';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-warm-ivory p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
+            <div className="h-10 bg-gray-200 rounded w-1/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[1, 2, 3].map(i => (
                 <div key={i} className="h-32 bg-gray-200 rounded"></div>
               ))}
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="h-64 bg-gray-200 rounded"></div>
-              <div className="h-64 bg-gray-200 rounded"></div>
             </div>
           </div>
         </div>
@@ -154,167 +119,139 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-header text-charcoal-navy mb-2">
-            Dashboard
-          </h1>
-          <p className="text-slate-gray">
-            Welcome back! Here's your case overview.
-          </p>
+          <h1 className="text-4xl font-header text-charcoal-navy">Dashboard</h1>
+          <p className="text-slate-gray mt-2">Welcome back to your case management system</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-header text-charcoal-navy">
-                  {caseData.totalDocuments}
-                </p>
-                <p className="text-sm text-slate-gray">Total Documents</p>
+        {/* Case Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {currentCase && (
+            <>
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <FileText className="w-8 h-8 text-dusty-mauve" />
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    currentCase.status === 'Active' ? 'bg-olive-emerald/10 text-olive-emerald' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {currentCase.status}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-charcoal-navy mb-2">Current Case</h3>
+                <p className="text-sm text-slate-gray mb-1">{currentCase.number}</p>
+                <p className="text-sm text-slate-gray">{currentCase.circuit}</p>
               </div>
-              <FileText className="w-8 h-8 text-dusty-mauve" />
-            </div>
-          </div>
 
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-header text-terracotta">
-                  {caseData.upcomingDeadlines}
-                </p>
-                <p className="text-sm text-slate-gray">Upcoming Deadlines</p>
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <Calendar className="w-8 h-8 text-terracotta" />
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    currentCase.daysRemaining <= 7 ? 'bg-garnet/10 text-garnet' : 'bg-dusty-mauve/10 text-dusty-mauve'
+                  }`}>
+                    {currentCase.daysRemaining} days
+                  </span>
+                </div>
+                <h3 className="font-semibold text-charcoal-navy mb-2">Next Hearing</h3>
+                <p className="text-sm text-slate-gray">{currentCase.nextHearing}</p>
               </div>
-              <Calendar className="w-8 h-8 text-terracotta" />
-            </div>
-          </div>
 
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-header text-olive-emerald">
-                  {caseData.recentActivity}
-                </p>
-                <p className="text-sm text-slate-gray">Recent Activities</p>
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <TrendingUp className="w-8 h-8 text-olive-emerald" />
+                  <span className="text-2xl font-header text-olive-emerald">{currentCase.progress}%</span>
+                </div>
+                <h3 className="font-semibold text-charcoal-navy mb-2">Case Progress</h3>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-olive-emerald h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${currentCase.progress}%` }}
+                  ></div>
+                </div>
               </div>
-              <TrendingUp className="w-8 h-8 text-olive-emerald" />
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-header text-garnet">
-                  {caseData.caseStatus}
-                </p>
-                <p className="text-sm text-slate-gray">Case Status</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-garnet" />
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Case Progress */}
           <div className="card">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-charcoal-navy">
-                Recent Activity
-              </h3>
-              <MessageSquare className="w-6 h-6 text-dusty-mauve" />
-            </div>
-            
+            <h2 className="section-subheader">Case Plan Progress</h2>
             <div className="space-y-4">
-              {recentActivities.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  No recent activity
-                </p>
-              ) : (
-                recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div className="flex-shrink-0">
-                      {activity.type === 'document' && (
-                        <FileText className="w-5 h-5 text-dusty-mauve" />
+              {caseProgress.map((item, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {item.status === 'Complete' ? (
+                        <CheckCircle className="w-5 h-5 text-olive-emerald" />
+                      ) : item.status === 'In Progress' ? (
+                        <Clock className="w-5 h-5 text-dusty-mauve" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-terracotta" />
                       )}
-                      {activity.type === 'message' && (
-                        <MessageSquare className="w-5 h-5 text-olive-emerald" />
-                      )}
-                      {activity.type === 'deadline' && (
-                        <Clock className="w-5 h-5 text-terracotta" />
-                      )}
+                      <h3 className="font-medium text-charcoal-navy">{item.task}</h3>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-charcoal-navy">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-slate-gray">
-                        {formatDate(activity.date)}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(item.status)}`}>
+                        {item.status}
+                      </span>
+                      <span className="text-sm font-medium text-slate-gray">{item.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-dusty-mauve h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${item.progress}%` }}
+                      ></div>
                     </div>
                   </div>
-                ))
-              )}
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Upcoming Deadlines */}
+          {/* Upcoming Events */}
           <div className="card">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-charcoal-navy">
-                Upcoming Deadlines
-              </h3>
-              <Calendar className="w-6 h-6 text-terracotta" />
-            </div>
-            
+            <h2 className="section-subheader">Upcoming Events</h2>
             <div className="space-y-4">
-              {upcomingDeadlines.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  No upcoming deadlines
-                </p>
-              ) : (
-                upcomingDeadlines.map((deadline) => (
-                  <div key={deadline.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div>
-                      <p className="font-medium text-charcoal-navy">
-                        {deadline.title}
-                      </p>
-                      <p className="text-sm text-slate-gray">
-                        {formatDate(deadline.date)}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(deadline.priority)}`}>
-                      {deadline.priority}
-                    </span>
+              {upcomingEvents.map((event, index) => (
+                <div key={index} className={`p-4 border-l-4 rounded-r-lg ${getEventTypeColor(event.type)}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-charcoal-navy">{event.title}</h3>
+                    <span className="text-xs font-medium">{event.daysRemaining} days</span>
                   </div>
-                ))
-              )}
+                  <p className="text-sm text-slate-gray">{event.date}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 card">
-          <h3 className="text-xl font-semibold text-charcoal-navy mb-6">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <FileText className="w-6 h-6 text-dusty-mauve mb-2" />
-              <p className="font-medium text-charcoal-navy">Upload Document</p>
-              <p className="text-sm text-slate-gray">Add new case documents</p>
-            </button>
+        <div className="mt-8">
+          <h2 className="section-subheader mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="/draft" className="card hover:shadow-brand transition-shadow cursor-pointer">
+              <FileText className="w-8 h-8 text-dusty-mauve mb-3" />
+              <h3 className="font-semibold text-charcoal-navy mb-1">Draft Document</h3>
+              <p className="text-sm text-slate-gray">Create legal documents</p>
+            </a>
             
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <MessageSquare className="w-6 h-6 text-olive-emerald mb-2" />
-              <p className="font-medium text-charcoal-navy">Start Chat</p>
-              <p className="text-sm text-slate-gray">Get AI assistance</p>
-            </button>
+            <a href="/documents" className="card hover:shadow-brand transition-shadow cursor-pointer">
+              <Users className="w-8 h-8 text-olive-emerald mb-3" />
+              <h3 className="font-semibold text-charcoal-navy mb-1">View Documents</h3>
+              <p className="text-sm text-slate-gray">Manage case files</p>
+            </a>
             
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Calendar className="w-6 h-6 text-terracotta mb-2" />
-              <p className="font-medium text-charcoal-navy">Set Reminder</p>
-              <p className="text-sm text-slate-gray">Add important dates</p>
-            </button>
+            <a href="/calendar" className="card hover:shadow-brand transition-shadow cursor-pointer">
+              <Calendar className="w-8 h-8 text-terracotta mb-3" />
+              <h3 className="font-semibold text-charcoal-navy mb-1">Calendar</h3>
+              <p className="text-sm text-slate-gray">Upcoming events</p>
+            </a>
+            
+            <a href="/chat" className="card hover:shadow-brand transition-shadow cursor-pointer">
+              <AlertTriangle className="w-8 h-8 text-garnet mb-3" />
+              <h3 className="font-semibold text-charcoal-navy mb-1">AI Assistant</h3>
+              <p className="text-sm text-slate-gray">Get legal help</p>
+            </a>
           </div>
         </div>
       </div>

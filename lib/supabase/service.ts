@@ -1,17 +1,15 @@
-// lib/supabase/service.ts
 import { createClient } from '@supabase/supabase-js';
 
-// Service client for admin operations (bypasses RLS)
-export const supabaseService = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Export as default for backward compatibility
-export default supabaseService;
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing Supabase service environment variables');
+}
+
+export const supabaseService = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
