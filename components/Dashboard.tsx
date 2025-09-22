@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar, 
   FileText, 
@@ -25,22 +25,43 @@ const YOUR_CASE_INFO = {
   daysRemaining: 3
 };
 
+// Define types for your data structures
+interface CaseProgressItem {
+  task: string;
+  status: string;
+  progress: number;
+}
+
+interface UpcomingEvent {
+  title: string;
+  date: string;
+  daysRemaining: number;
+  type: string;
+}
+
+interface RecentDocument {
+  name: string;
+  type: string;
+  date: string;
+  status: string;
+}
+
 const Dashboard = () => {
-  const [caseProgress, setCaseProgress] = useState([
+  const [caseProgress, setCaseProgress] = useState<CaseProgressItem[]>([
     { task: "Parenting Classes", status: "Complete", progress: 100 },
     { task: "Housing Stability", status: "In Progress", progress: 75 },
     { task: "Substance Abuse Program", status: "In Progress", progress: 60 },
     { task: "Mental Health Evaluation", status: "Scheduled", progress: 0 }
   ]);
 
-  const [upcomingEvents, setUpcomingEvents] = useState([
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([
     { title: "Adjudicatory Hearing", date: "March 15, 2025 at 2:00 PM", daysRemaining: 3, type: "critical" },
     { title: "Supervised Visitation", date: "March 20, 2025 at 10:00 AM", daysRemaining: 8, type: "routine" },
     { title: "Case Plan Review", date: "March 25, 2025 at 1:30 PM", daysRemaining: 13, type: "important" },
     { title: "Judicial Review Hearing", date: "April 10, 2025 at 9:00 AM", daysRemaining: 29, type: "important" }
   ]);
 
-  const [recentDocuments] = useState([
+  const [recentDocuments] = useState<RecentDocument[]>([
     { name: "Motion for Increased Visitation", type: "Motion", date: "2025-03-10", status: "Filed" },
     { name: "Progress Report Affidavit", type: "Affidavit", date: "2025-03-08", status: "Draft" },
     { name: "Housing Documentation", type: "Evidence", date: "2025-03-05", status: "Uploaded" }
@@ -155,7 +176,7 @@ const Dashboard = () => {
                 <h2 className="section-subheader mb-0">Upcoming Events</h2>
               </div>
               <div className="space-y-4">
-                {upcomingEvents.map((event, index) => (
+                {upcomingEvents.map((event: UpcomingEvent, index: number) => (
                   <div
                     key={index}
                     className={`p-4 border-l-4 rounded-r-lg ${getEventTypeColor(event.type)}`}
@@ -187,7 +208,7 @@ const Dashboard = () => {
                 <h2 className="section-subheader mb-0">Case Plan Progress</h2>
               </div>
               <div className="space-y-4">
-                {caseProgress.map((item, index) => (
+                {caseProgress.map((item: CaseProgressItem, index: number) => (
                   <div key={index} className="border border-gray-100 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-charcoal-navy">{item.task}</h3>
@@ -239,7 +260,7 @@ const Dashboard = () => {
             <div className="card">
               <h2 className="section-subheader">Recent Documents</h2>
               <div className="space-y-3">
-                {recentDocuments.map((doc, index) => (
+                {recentDocuments.map((doc: RecentDocument, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-warm-ivory rounded-lg">
                     <div>
                       <h3 className="font-medium text-charcoal-navy text-sm">{doc.name}</h3>

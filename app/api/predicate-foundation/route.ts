@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const performPredicateAnalysis = async (documentContent) => {
+const performPredicateAnalysis = async (documentContent: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal assistant specializing in juvenile dependency cases. Analyze the following motion to identify its legal and factual predicates. Provide a brief report on the strength of the arguments and suggest ways to strengthen them by matching facts to legal principles.
@@ -20,7 +20,7 @@ const performPredicateAnalysis = async (documentContent) => {
   return analysisReport;
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { documentContent } = await request.json();
 
   if (!documentContent) {

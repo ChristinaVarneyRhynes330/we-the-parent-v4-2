@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const performWeaknessAnalysis = async (documentContent) => {
+const performWeaknessAnalysis = async (documentContent: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal analyst. Your task is to review the following document and identify potential weaknesses in the legal arguments and factual claims. Provide a clear, actionable report with suggestions for improvement.
@@ -26,7 +26,7 @@ const performWeaknessAnalysis = async (documentContent) => {
   return analysisReport;
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { documentContent } = await request.json();
 
   if (!documentContent) {

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const generateObjectionResponse = async (objectionText) => {
+const generateObjectionResponse = async (objectionText: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal assistant specializing in courtroom procedure. The opposing counsel has just made the following objection:
@@ -23,7 +23,7 @@ const generateObjectionResponse = async (objectionText) => {
   return responseText;
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { objection } = await request.json();
 
   if (!objection) {

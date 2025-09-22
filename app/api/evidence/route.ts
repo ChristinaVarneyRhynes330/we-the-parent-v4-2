@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
 // This is a mock database for storing file metadata.
-let evidenceFiles = [];
+let evidenceFiles: any[] = [];
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get('file');
 
@@ -15,13 +15,13 @@ export async function POST(request) {
   // For this mock, we'll just extract the file name and size.
   const fileMetadata = {
     id: evidenceFiles.length + 1,
-    name: file.name,
-    size: file.size,
-    type: file.type,
+    name: (file as File).name,
+    size: (file as File).size,
+    type: (file as File).type,
     uploadDate: new Date().toISOString(),
     // Assume all files are categorized as 'Uncategorized' until analysis.
     category: 'Uncategorized',
-    storagePath: `evidence/${file.name}`,
+    storagePath: `evidence/${(file as File).name}`,
   };
 
   evidenceFiles.push(fileMetadata);

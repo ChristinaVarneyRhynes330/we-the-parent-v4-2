@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const generateEmergencyMotion = async (motionDetails) => {
+const generateEmergencyMotion = async (motionDetails: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal assistant specializing in Florida juvenile dependency law. Draft an Emergency Motion for [Insert Motion Type] based on the following details for a pro se litigant.
@@ -23,7 +23,7 @@ const generateEmergencyMotion = async (motionDetails) => {
   return motionDraft;
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const motionDetails = await request.json();
 
   if (!motionDetails.caseName || !motionDetails.caseNumber || !motionDetails.reason || !motionDetails.outcome) {

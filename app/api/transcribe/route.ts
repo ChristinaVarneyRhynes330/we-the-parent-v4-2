@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
 // This is a mock function to simulate an AI transcription service.
-const performTranscription = async (audioData) => {
+const performTranscription = async (audioData: any) => {
   // In a real implementation, you would send audioData to an API like OpenAI's Whisper or Google Speech-to-Text.
   const mockTranscript = `Speaker 1: Thank you all for joining us today for the case review.
 Speaker 2: We have made significant progress on the case plan tasks.
@@ -17,8 +17,8 @@ Speaker 1: Excellent. We will document that in the next report.`;
   };
 };
 
-export async function POST(request) {
-  const { content } = await await request.json();
+export async function POST(request: NextRequest) {
+  const { content } = await request.json();
 
   if (!content) {
     return NextResponse.json({ error: 'Missing audio content' }, { status: 400 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react'; // FIX: Add React and ChangeEvent to the import
 import { FileText, Upload, Search, Filter, Download, Eye, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { CASE_ID, DOCUMENT_TYPES } from '@/constants/case';
@@ -45,7 +45,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -90,7 +90,7 @@ export default function DocumentsPage() {
     });
   };
 
-  const filteredDocuments = documents.filter(doc => {
+  const filteredDocuments = documents.filter((doc: Document) => { // FIX: Add type to 'doc'
     const matchesSearch = doc.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (doc.summary && doc.summary.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filterType === 'all' || doc.document_type === filterType;
@@ -146,7 +146,7 @@ export default function DocumentsPage() {
                 placeholder="Search documents..."
                 className="form-input pl-10 w-full"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="relative">
@@ -154,11 +154,11 @@ export default function DocumentsPage() {
               <select
                 className="form-input pl-10 pr-8"
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
               >
                 <option value="all">All Types</option>
-                {Object.values(DOCUMENT_TYPES).map(type => (
-                  <option key={type} value={type}>{type}</option>
+                {Object.values(DOCUMENT_TYPES).map((type: any, index: number) => (
+                  <option key={index} value={type}>{type}</option>
                 ))}
               </select>
             </div>
@@ -174,7 +174,7 @@ export default function DocumentsPage() {
               <p className="text-sm text-gray-400 mt-1">Upload your first document to get started</p>
             </div>
           ) : (
-            filteredDocuments.map(doc => (
+            filteredDocuments.map((doc: Document) => (
               <div key={doc.id} className="card hover:shadow-brand transition-shadow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -224,19 +224,19 @@ export default function DocumentsPage() {
           </div>
           <div className="card text-center">
             <p className="text-3xl font-header text-dusty-mauve">
-              {documents.filter(d => d.document_type === 'Motion').length}
+              {documents.filter((d: Document) => d.document_type === 'Motion').length}
             </p>
             <p className="text-sm text-slate-gray">Motions</p>
           </div>
           <div className="card text-center">
             <p className="text-3xl font-header text-terracotta">
-              {documents.filter(d => d.document_type === 'Evidence').length}
+              {documents.filter((d: Document) => d.document_type === 'Evidence').length}
             </p>
             <p className="text-sm text-slate-gray">Evidence Items</p>
           </div>
           <div className="card text-center">
             <p className="text-3xl font-header text-olive-emerald">
-              {documents.filter(d => d.document_type === 'Court Order').length}
+              {documents.filter((d: Document) => d.document_type === 'Court Order').length}
             </p>
             <p className="text-sm text-slate-gray">Court Orders</p>
           </div>

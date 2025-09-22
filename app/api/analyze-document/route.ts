@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const performDocumentAnalysis = async (documentContent) => {
+const performDocumentAnalysis = async (documentContent: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal document analyst. Analyze the following document content to determine its type and provide a brief summary of its key points. The possible document types are: Motion, Affidavit, Court Order, Letter, Evidence, or Other.
@@ -19,7 +19,7 @@ const performDocumentAnalysis = async (documentContent) => {
   const responseText = completion.choices[0].message.content;
 
   try {
-    const analysis = JSON.parse(responseText);
+    const analysis = JSON.parse(responseText!);
     return analysis;
   } catch (e) {
     console.error("Failed to parse AI response:", responseText);
@@ -30,7 +30,7 @@ const performDocumentAnalysis = async (documentContent) => {
   }
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { content } = await request.json();
 
   if (!content) {

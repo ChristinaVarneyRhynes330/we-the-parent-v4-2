@@ -1,6 +1,6 @@
-// Your Personal Case Information
-// Update these with your actual case details
+// constants/case.ts
 
+// Your Personal Case Information
 export const YOUR_CASE_INFO = {
   // Case Details
   caseNumber: "2024-DP-000587-XXDP-BC",
@@ -40,6 +40,15 @@ export const YOUR_CASE_INFO = {
 
 // Supabase Case ID (if using database)
 export const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9'; // Replace with your actual UUID if using Supabase
+
+// FIX: Added DOCUMENT_TYPES export
+export const DOCUMENT_TYPES = {
+  MOTION: "Motion",
+  EVIDENCE: "Evidence",
+  COURT_ORDER: "Court Order",
+  AFFIDAVIT: "Affidavit",
+  OTHER: "Other"
+};
 
 // Common Document Templates for Your Case
 export const DOCUMENT_TEMPLATES = {
@@ -85,7 +94,7 @@ export const DOCUMENT_TEMPLATES = {
       "Substantial compliance with all case plan requirements",
       "Completed all court-ordered services",
       "Maintained stable housing suitable for child",
-      "Demonstrated ability to provide safe environment",
+      "Demonstrated ability to provide a safe environment",
       "Strong parent-child bond maintained through visits",
       "Support system in place for ongoing stability"
     ],
@@ -160,5 +169,6 @@ export default {
   DOCUMENT_TEMPLATES,
   FLORIDA_STATUTES,
   COURT_INFO,
-  LOCAL_RESOURCES
+  LOCAL_RESOURCES,
+  DOCUMENT_TYPES // FIX: Make sure DOCUMENT_TYPES is included in the default export
 };

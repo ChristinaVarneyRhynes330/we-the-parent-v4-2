@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react'; // FIX: Add React to the import
 import { FileText, Download, Copy, Eye, Loader2 } from 'lucide-react';
 
 // Your personal case information - pre-filled for convenience
@@ -31,18 +31,28 @@ const QUICK_TEMPLATES = {
   }
 };
 
+// FIX: Define interfaces for props and form state
 interface DocumentFormProps {
   onDocumentGenerated?: (document: string, info: any) => void;
 }
 
+interface FormDataState {
+  caseName: string;
+  caseNumber: string;
+  documentType: 'Motion' | 'Affidavit' | 'Objection';
+  reason: string;
+  outcome: string;
+  modelName: 'gpt-4o' | 'gemini-pro';
+}
+
 const DocumentForm = ({ onDocumentGenerated }: DocumentFormProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     caseName: YOUR_CASE_INFO.caseName,
     caseNumber: YOUR_CASE_INFO.caseNumber,
-    documentType: 'Motion' as 'Motion' | 'Affidavit' | 'Objection',
+    documentType: 'Motion',
     reason: '',
     outcome: '',
-    modelName: 'gpt-4o' as 'gpt-4o' | 'gemini-pro'
+    modelName: 'gpt-4o'
   });
 
   const [generatedDocument, setGeneratedDocument] = useState('');
@@ -52,7 +62,7 @@ const DocumentForm = ({ onDocumentGenerated }: DocumentFormProps) => {
 
   const handleTemplateSelect = (templateKey: keyof typeof QUICK_TEMPLATES) => {
     const template = QUICK_TEMPLATES[templateKey];
-    setFormData(prev => ({
+    setFormData((prev: FormDataState) => ({ // FIX: Add type to 'prev'
       ...prev,
       reason: template.reason,
       outcome: template.outcome
@@ -60,7 +70,7 @@ const DocumentForm = ({ onDocumentGenerated }: DocumentFormProps) => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev: FormDataState) => ({ // FIX: Add type to 'prev'
       ...prev,
       [field]: value
     }));

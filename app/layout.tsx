@@ -1,3 +1,4 @@
+import React from 'react'; // FIX: Add the missing React import
 import type { Metadata } from 'next';
 import { DM_Serif_Display, Work_Sans } from 'next/font/google';
 import '../styles/globals.css';

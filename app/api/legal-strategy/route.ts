@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-const generateLegalStrategy = async (caseSummary) => {
+const generateLegalStrategy = async (caseSummary: any) => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const prompt = `You are an AI legal strategist specializing in Florida juvenile dependency cases. Based on the following case summary, generate a legal strategy report. The report should include:
@@ -23,7 +23,7 @@ const generateLegalStrategy = async (caseSummary) => {
   return strategyReport;
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const { caseSummary } = await request.json();
 
   if (!caseSummary) {
