@@ -1,34 +1,30 @@
-import { serve } from 'https-deno.land/std@0.168.0/http/server.ts'
-import { pipeline } from 'https-esm.sh/@xenova/transformers@2.17.1'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { pipeline } from 'https://esm.sh/@xenova/transformers@2.17.1';
+import { createClient } from 'https://deno.land/x/supabase/mod.ts';
 
-// Create a singleton pipeline instance to avoid reloading the model on every call
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+);
+
 const extractor = await pipeline('feature-extraction', 'Xenova/gte-small');
 
 serve(async (req) => {
   try {
     const { text } = await req.json();
+    if (!text) return new Response(JSON.stringify({ error: 'Missing text' }), { status: 400 });
 
-    if (!text) {
-      return new Response(
-        JSON.stringify({ error: 'Missing "text" property in request body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Generate the embedding from the text
     const output = await extractor(text, { pooling: 'mean', normalize: true });
-    
-    // Extract the embedding vector
     const embedding = Array.from(output.data);
 
-    return new Response(
-      JSON.stringify({ embedding }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    // Store in Supabase
+    const { data, error } = await supabase.from('embeddings').insert([
+      { text, embedding, created_at: new Date().toISOString() },
+    ]);
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ embedding, data }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 });
