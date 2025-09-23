@@ -1,91 +1,54 @@
-import { NextResponse, NextRequest } from 'next/server';
-import OpenAI from 'openai';
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/server';
 
-const performWeaknessAnalysis = async (documentContent: string): Promise<string> => {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key not configured');
-  }
+const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9'; // Hardcoded for now
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  const prompt = `You are an AI legal analyst. Your task is to review the following document and identify potential weaknesses in the legal arguments and factual claims. Provide a clear, actionable report with suggestions for improvement.
-
-  Document Content:
-  "${documentContent}"
-
-  Based on the content, generate a report that includes:
-  1. A list of potential factual gaps or missing evidence.
-  2. A breakdown of legal arguments that could be challenged by opposing counsel.
-  3. Suggestions for strengthening the weak points with additional facts or legal research.
-  4. A confidence score for each weakness identified.
-
-  Format the output as an easy-to-read, professional report.`;
-
+// GET handler to fetch all children for the case
+export async function GET(request: NextRequest) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
-      max_tokens: 2000
-    });
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('children')
+      .select('*')
+      .eq('case_id', CASE_ID)
+      .order('date_of_birth', { ascending: true });
 
-    const analysisReport = completion.choices[0]?.message?.content;
-    
-    if (!analysisReport) {
-      throw new Error('Empty response from OpenAI');
-    }
+    if (error) throw error;
 
-    return analysisReport;
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    throw error;
+    return NextResponse.json({ children: data });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-};
+}
 
+// POST handler to create a new child record
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { documentContent } = body;
+    const { name, date_of_birth, ...otherFields } = body;
 
-    if (!documentContent || typeof documentContent !== 'string') {
-      return NextResponse.json(
-        { error: 'Missing or invalid document content' },
-        { status: 400 }
-      );
+    if (!name || !date_of_birth) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: name and date_of_birth' 
+      }, { status: 400 });
     }
 
-    if (documentContent.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Document content cannot be empty' },
-        { status: 400 }
-      );
-    }
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('children')
+      .insert({
+        case_id: CASE_ID,
+        name,
+        date_of_birth,
+        ...otherFields,
+      })
+      .select()
+      .single();
 
-    const analysisReport = await performWeaknessAnalysis(documentContent);
-    
-    return NextResponse.json({ report: analysisReport }, { status: 200 });
-  } catch (error: unknown) {
-    console.error("Weakness Analysis API Error:", error);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('API key')) {
-        return NextResponse.json(
-          { error: 'OpenAI API configuration error' },
-          { status: 500 }
-        );
-      }
-      
-      if (error.message.includes('rate limit') || error.message.includes('quota')) {
-        return NextResponse.json(
-          { error: 'API rate limit exceeded. Please try again later.' },
-          { status: 429 }
-        );
-      }
-    }
-    
-    return NextResponse.json(
-      { error: 'Failed to perform weakness analysis.' },
-      { status: 500 }
-    );
+    if (error) throw error;
+
+    return NextResponse.json({ child: data }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

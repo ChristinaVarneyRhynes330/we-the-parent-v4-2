@@ -96,4 +96,9 @@ export default function Sidebar() {
                 {item.name}
               </Link>
             );
-          }
+          })}
+        </nav>
+      </div>
+    </div>
+  );
+}
