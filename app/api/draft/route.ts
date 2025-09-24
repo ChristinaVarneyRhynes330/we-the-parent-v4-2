@@ -1,3 +1,4 @@
+// Import necessary modules and types
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
@@ -177,7 +178,8 @@ export async function POST(request: Request) {
     // Get the appropriate prompt template
     const prompt = getPromptTemplate(body.documentType, caseName, caseNumber, body.reason.trim(), body.outcome.trim());
 
-    let text: string;
+    // Initialize the 'text' variable with an empty string
+    let text = '';
     
     // Generate document using selected AI model
     if (body.modelName === 'gemini-pro') {

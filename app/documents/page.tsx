@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import DocumentPreview from '@/components/DocumentPreview';
 
 // This should match the 'case_id' for your sample case in Supabase.
-const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9'; 
+const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9';
 
 const DOCUMENT_TYPES = {
   MOTION: 'Motion',
@@ -88,7 +88,10 @@ export default function DocumentsPage() {
     const maxFileSize = 10 * 1024 * 1024; // 10MB
     const allowedTypes = ['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
     
-    for (let file of files) {
+    // Convert FileList to an array to fix the TypeScript error.
+    const fileArray = Array.from(files);
+
+    for (let file of fileArray) {
       if (file.size > maxFileSize) {
         setUploadStatus({
           uploading: false,
@@ -112,12 +115,12 @@ export default function DocumentsPage() {
     }
 
     // Process each file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       
       setUploadStatus({
         uploading: true,
-        progress: Math.round((i / files.length) * 50), // First 50% for processing
+        progress: Math.round((i / fileArray.length) * 50), // First 50% for processing
         message: `Processing ${file.name}...`,
         type: 'info'
       });
@@ -133,7 +136,7 @@ export default function DocumentsPage() {
 
         setUploadStatus({
           uploading: true,
-          progress: Math.round(((i + 0.5) / files.length) * 100),
+          progress: Math.round(((i + 0.5) / fileArray.length) * 100),
           message: `Analyzing ${file.name}...`,
           type: 'info'
         });
@@ -143,7 +146,7 @@ export default function DocumentsPage() {
         if (response.ok) {
           setUploadStatus({
             uploading: false,
-            progress: Math.round(((i + 1) / files.length) * 100),
+            progress: Math.round(((i + 1) / fileArray.length) * 100),
             message: `Successfully uploaded ${file.name}`,
             type: 'success'
           });
@@ -279,7 +282,7 @@ export default function DocumentsPage() {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (doc.summary && doc.summary.toLowerCase().includes(searchTerm.toLowerCase()));
+                          (doc.summary && doc.summary.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filterType === 'all' || doc.document_type === filterType;
     return matchesSearch && matchesFilter;
   });
@@ -382,7 +385,7 @@ export default function DocumentsPage() {
                   className="text-current hover:opacity-70"
                   title="Dismiss"
                 >
-                  ×
+                  &times;
                 </button>
               )}
             </div>
@@ -393,8 +396,10 @@ export default function DocumentsPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <label htmlFor="document-search" className="sr-only">Search documents</label>
                 <input
                   type="search"
+                  id="document-search"
                   placeholder="Search documents by name or summary..."
                   className="form-input pl-10 w-full"
                   value={searchTerm}
@@ -403,7 +408,9 @@ export default function DocumentsPage() {
               </div>
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <label htmlFor="document-filter" className="sr-only">Filter documents by type</label>
                 <select
+                  id="document-filter"
                   className="form-input pl-10 pr-8"
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
@@ -428,7 +435,7 @@ export default function DocumentsPage() {
                       onClick={() => setSearchTerm('')}
                       className="ml-2 text-dusty-mauve hover:text-garnet"
                     >
-                      Clear search
+                      Clear search to see all documents
                     </button>
                   )}
                 </p>
