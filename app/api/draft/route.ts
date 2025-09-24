@@ -20,129 +20,162 @@ interface DraftRequest {
   documentType: 'Motion' | 'Affidavit' | 'Objection';
 }
 
+// Enhanced prompt templates with better structure
+const getPromptTemplate = (documentType: string, caseName: string, caseNumber: string, reason: string, outcome: string) => {
+  const commonHeader = `
+IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
+IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
+${YOUR_CASE_INFO.division.toUpperCase()}
+
+Case Name: ${caseName}
+Case Number: ${caseNumber}`;
+
+  const templates = {
+    Motion: `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a professional motion with the following format:
+
+${commonHeader}
+
+MOTION FOR [SPECIFIC RELIEF REQUESTED]
+
+TO THE HONORABLE COURT:
+
+COMES NOW, [Parent Name], appearing pro se, and respectfully moves this Honorable Court as follows:
+
+I. INTRODUCTION
+[Brief introduction identifying the parent and purpose of the motion]
+
+II. BACKGROUND
+[Relevant case context and procedural history]
+
+III. STATEMENT OF FACTS
+The following facts support this motion:
+${reason}
+
+IV. LEGAL ARGUMENT
+[Cite relevant Florida Statutes (Chapter 39) and case law supporting the motion, including constitutional due process rights and fundamental parental rights]
+
+V. PRAYER FOR RELIEF
+WHEREFORE, Petitioner respectfully requests that this Honorable Court:
+${outcome}
+
+RESPECTFULLY SUBMITTED,
+
+_____________________________
+[Parent Name], Pro Se
+[Address]
+[City, State ZIP]
+[Phone Number]
+Florida Bar No: N/A
+
+CERTIFICATE OF SERVICE
+
+I HEREBY CERTIFY that a true and correct copy of the foregoing has been served upon all parties by [method of service] on this _____ day of _________, 2025.
+
+_____________________________
+[Parent Name]`,
+
+    Affidavit: `Draft a sworn Affidavit for a Florida juvenile dependency case:
+
+${commonHeader}
+
+AFFIDAVIT OF [AFFIANT NAME]
+
+STATE OF FLORIDA
+COUNTY OF ${YOUR_CASE_INFO.county.toUpperCase()}
+
+BEFORE ME, the undersigned authority, personally appeared [Affiant Name], who being first duly sworn, deposes and says:
+
+1. I am [age] years of age and am competent to testify to the matters set forth herein based upon my personal knowledge.
+
+2. I am the [relationship] of the minor child(ren) involved in the above-styled case.
+
+3. The following facts are true and correct:
+${reason}
+
+4. ${outcome}
+
+5. I make this affidavit based upon my personal knowledge and in support of [purpose of affidavit].
+
+FURTHER AFFIANT SAYETH NAUGHT.
+
+_____________________________
+[Affiant Name]
+
+Sworn to and subscribed before me this _____ day of _________, 2025.
+
+_____________________________
+Notary Public, State of Florida
+Print Name: ______________________
+My Commission Expires: ___________`,
+
+    Objection: `Draft a formal Objection for a Florida juvenile dependency case:
+
+${commonHeader}
+
+OBJECTION TO [SPECIFY WHAT IS BEING OBJECTED TO]
+
+TO THE HONORABLE COURT:
+
+COMES NOW, [Parent Name], appearing pro se, and hereby objects to [specific matter] on the following grounds:
+
+I. BASIS FOR OBJECTION
+${reason}
+
+II. LEGAL AUTHORITY
+The following legal principles support this objection:
+${outcome}
+
+III. PRAYER FOR RELIEF
+WHEREFORE, [Parent Name] respectfully requests that this Honorable Court sustain this objection and [specific relief requested].
+
+RESPECTFULLY SUBMITTED,
+
+_____________________________
+[Parent Name], Pro Se
+[Address]
+[City, State ZIP]
+[Phone Number]
+
+CERTIFICATE OF SERVICE
+[Standard certificate of service language]`
+  };
+
+  return templates[documentType as keyof typeof templates] || templates.Motion;
+};
+
 export async function POST(request: Request) {
   try {
     const body: DraftRequest = await request.json();
     
-    // Validate required fields
-    if (!body.documentType || !body.modelName || !body.reason || !body.outcome) {
+    // Enhanced validation
+    if (!body.documentType || !body.modelName || !body.reason?.trim() || !body.outcome?.trim()) {
       return NextResponse.json({ 
-        error: 'Missing required fields. Need: documentType, modelName, reason, outcome' 
+        error: 'Missing required fields. Need: documentType, modelName, reason (non-empty), outcome (non-empty)' 
+      }, { status: 400 });
+    }
+
+    // Validate document type
+    const validDocTypes = ['Motion', 'Affidavit', 'Objection'];
+    if (!validDocTypes.includes(body.documentType)) {
+      return NextResponse.json({ 
+        error: `Invalid document type. Must be one of: ${validDocTypes.join(', ')}` 
+      }, { status: 400 });
+    }
+
+    // Validate model
+    const validModels = ['gemini-pro', 'groq'];
+    if (!validModels.includes(body.modelName)) {
+      return NextResponse.json({ 
+        error: `Invalid model. Must be one of: ${validModels.join(', ')}` 
       }, { status: 400 });
     }
 
     // Use your case info as defaults if not provided
-    const caseName = body.caseName || YOUR_CASE_INFO.caseName;
-    const caseNumber = body.caseNumber || YOUR_CASE_INFO.caseNumber;
+    const caseName = body.caseName?.trim() || YOUR_CASE_INFO.caseName;
+    const caseNumber = body.caseNumber?.trim() || YOUR_CASE_INFO.caseNumber;
 
-    let prompt: string;
-    
-    // Construct the prompt based on the document type
-    switch (body.documentType) {
-      case 'Motion':
-        prompt = `As an AI legal drafting assistant for a pro se parent in a Florida juvenile dependency case, draft a professional motion. The motion must be formatted with the following information in a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure for formatting:
-
-IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
-IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
-${YOUR_CASE_INFO.division.toUpperCase()}
-
-Case Name: ${caseName}
-Case Number: ${caseNumber}
-
-The body of the motion should include:
-
-1. A proper introduction identifying the parent/petitioner and the specific purpose of the motion
-
-2. A section titled 'BACKGROUND' providing relevant case context
-
-3. A section titled 'STATEMENT OF FACTS' that details the progress made by the parent, using these specific facts: ${body.reason}
-
-4. A section titled 'LEGAL ARGUMENT' citing relevant Florida Statutes (particularly Chapter 39) and case law supporting the motion
-
-5. A section titled 'PRAYER FOR RELIEF' that clearly states the requested action from the court: ${body.outcome}
-
-6. Proper signature blocks with spaces for:
-   - Parent's signature and printed name
-   - Address and phone number
-   - Florida Bar number (if applicable) or "Pro Se"
-   - Date line
-
-7. A 'CERTIFICATE OF SERVICE' section stating how copies were served on all parties
-
-Ensure the tone is formal, respectful, and professional as expected in legal documents. Use proper legal formatting with numbered paragraphs where appropriate. Do not provide legal advice, just draft the content based on the provided facts.`;
-        break;
-
-      case 'Affidavit':
-        prompt = `As an AI legal drafting assistant, draft a sworn Affidavit for a pro se parent in a Florida juvenile dependency case. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure.
-
-IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
-IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
-${YOUR_CASE_INFO.division.toUpperCase()}
-
-Case Name: ${caseName}
-Case Number: ${caseNumber}
-
-The body of the affidavit should include:
-
-1. A proper title: "AFFIDAVIT OF [AFFIANT NAME]"
-
-2. An introduction stating: "STATE OF FLORIDA, COUNTY OF ${YOUR_CASE_INFO.county.toUpperCase()}"
-
-3. A sworn statement beginning with: "I, [NAME], being first duly sworn, depose and say:"
-
-4. Numbered paragraphs containing the facts: ${body.reason}
-
-5. A statement regarding the affiant's personal knowledge: ${body.outcome}
-
-6. A closing statement: "Further Affiant sayeth naught."
-
-7. Signature lines for:
-   - Affiant signature and printed name
-   - Date
-   - Notary public signature, printed name, and seal
-   - Notary commission expiration date
-
-Ensure the document follows proper affidavit format with sworn language. Do not provide legal advice, just draft the document based on the facts provided.`;
-        break;
-
-      case 'Objection':
-        prompt = `As an AI legal drafting assistant, draft a formal Objection for a pro se parent in a Florida juvenile dependency case. The document must be formatted with a standard Florida court caption and comply with the Florida Rules of Juvenile Procedure.
-
-IN THE CIRCUIT COURT OF THE ${YOUR_CASE_INFO.circuit.toUpperCase()}
-IN AND FOR ${YOUR_CASE_INFO.county.toUpperCase()}, FLORIDA
-${YOUR_CASE_INFO.division.toUpperCase()}
-
-Case Name: ${caseName}
-Case Number: ${caseNumber}
-
-The objection should include:
-
-1. A clear title: "OBJECTION TO [SPECIFY WHAT IS BEING OBJECTED TO]"
-
-2. An introduction identifying the objecting party
-
-3. A section titled 'BASIS FOR OBJECTION' clearly stating the grounds for objection: ${body.reason}
-
-4. A section titled 'LEGAL AUTHORITY' citing relevant legal principles, rules of evidence, or statutory authority: ${body.outcome}
-
-5. A section titled 'PRAYER FOR RELIEF' requesting the court's action
-
-6. Proper signature blocks including:
-   - Parent's signature and printed name
-   - Address and phone number
-   - "Pro Se" designation
-   - Date
-
-7. Certificate of Service section
-
-Ensure the document is formatted for immediate court filing with proper legal formatting. The tone should be respectful but firm. Do not provide legal advice, just draft the content based on the information provided.`;
-        break;
-
-      default:
-        return NextResponse.json({ 
-          error: 'Unsupported document type. Supported types: Motion, Affidavit, Objection' 
-        }, { status: 400 });
-    }
+    // Get the appropriate prompt template
+    const prompt = getPromptTemplate(body.documentType, caseName, caseNumber, body.reason.trim(), body.outcome.trim());
 
     let text: string;
     
@@ -150,45 +183,91 @@ Ensure the document is formatted for immediate court filing with proper legal fo
     if (body.modelName === 'gemini-pro') {
       if (!process.env.GOOGLE_API_KEY) {
         return NextResponse.json({ 
-          error: 'Google API key not configured' 
+          error: 'Google API key not configured. Please check server configuration.' 
         }, { status: 500 });
       }
       
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      text = response.text();
+      try {
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-pro",
+          generationConfig: {
+            temperature: 0.7,
+            topP: 0.8,
+            maxOutputTokens: 4000,
+          }
+        });
+        
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        text = response.text();
+        
+      } catch (geminiError: any) {
+        console.error("Gemini API Error:", geminiError);
+        
+        // Handle specific Gemini API errors
+        if (geminiError.message?.includes('quota')) {
+          return NextResponse.json({ 
+            error: 'Google AI quota exceeded. Please try again later or use the Groq model.' 
+          }, { status: 429 });
+        }
+        
+        return NextResponse.json({ 
+          error: 'Failed to generate document with Gemini. Please try the Groq model instead.' 
+        }, { status: 500 });
+      }
+      
     } else if (body.modelName === 'groq') {
       if (!process.env.AI_API_KEY) {
         return NextResponse.json({ 
-          error: 'Groq API key not configured' 
+          error: 'Groq API key not configured. Please check server configuration.' 
         }, { status: 500 });
       }
       
-      const groq = new Groq({ apiKey: process.env.AI_API_KEY! });
-      const completion = await groq.chat.completions.create({
-        messages: [{ 
-          role: "user", 
-          content: prompt 
-        }],
-        model: "gemma2-9b-it",
-        temperature: 0.7,
-        max_tokens: 4000
-      });
-      text = completion.choices[0]?.message?.content || '';
-    } else {
-      return NextResponse.json({ 
-        error: 'Unsupported AI model. Use "gemini-pro" or "groq"' 
-      }, { status: 400 });
+      try {
+        const groq = new Groq({ apiKey: process.env.AI_API_KEY });
+        const completion = await groq.chat.completions.create({
+          messages: [{ 
+            role: "user", 
+            content: prompt 
+          }],
+          model: "llama3-8b-8192", // Using a more reliable model
+          temperature: 0.7,
+          max_tokens: 4000,
+          top_p: 0.8,
+        });
+        
+        text = completion.choices[0]?.message?.content || '';
+        
+      } catch (groqError: any) {
+        console.error("Groq API Error:", groqError);
+        
+        // Handle specific Groq API errors
+        if (groqError.message?.includes('rate limit')) {
+          return NextResponse.json({ 
+            error: 'Groq API rate limit exceeded. Please wait a moment and try again.' 
+          }, { status: 429 });
+        }
+        
+        return NextResponse.json({ 
+          error: 'Failed to generate document with Groq. Please try again or use the Gemini model.' 
+        }, { status: 500 });
+      }
     }
 
-    if (!text) {
+    // Validate generated content
+    if (!text || text.trim().length < 100) {
       return NextResponse.json({ 
-        error: 'Failed to generate document content' 
+        error: 'Generated document is too short or empty. Please try again with more detailed information.' 
       }, { status: 500 });
     }
 
+    // Clean up the generated text
+    text = text.trim();
+
+    // Add timestamp and generation info
+    const generatedAt = new Date().toISOString();
+    
     return NextResponse.json({ 
       draft: text,
       caseInfo: {
@@ -198,36 +277,75 @@ Ensure the document is formatted for immediate court filing with proper legal fo
         county: YOUR_CASE_INFO.county
       },
       documentType: body.documentType,
-      generatedAt: new Date().toISOString()
-    });
+      modelUsed: body.modelName,
+      generatedAt: generatedAt,
+      wordCount: text.split(/\s+/).length,
+      success: true
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error("AI Generation Error:", error);
     
-    // Handle specific API errors
-    if (error.message?.includes('API key')) {
+    // Handle different types of errors
+    if (error.name === 'SyntaxError') {
       return NextResponse.json({ 
-        error: 'API key configuration error. Check your environment variables.' 
-      }, { status: 500 });
+        error: 'Invalid request format. Please check your input data.' 
+      }, { status: 400 });
     }
     
-    if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+    if (error.message?.includes('network') || error.message?.includes('timeout')) {
       return NextResponse.json({ 
-        error: 'API rate limit exceeded. Please try again later.' 
-      }, { status: 429 });
+        error: 'Network error occurred. Please check your connection and try again.' 
+      }, { status: 503 });
     }
     
     return NextResponse.json({ 
-      error: 'Failed to generate document. Please try again.' 
+      error: 'An unexpected error occurred while generating the document. Please try again.' 
     }, { status: 500 });
   }
 }
 
-// GET endpoint to provide templates and case info
+// Enhanced GET endpoint with more information
 export async function GET() {
   return NextResponse.json({
     caseInfo: YOUR_CASE_INFO,
-    supportedModels: ['gemini-pro', 'groq'],
-    supportedDocumentTypes: ['Motion', 'Affidavit', 'Objection']
+    supportedModels: [
+      {
+        name: 'groq',
+        label: 'Groq (Recommended)',
+        description: 'Fast and reliable AI model for legal document generation',
+        features: ['High speed', 'Good legal understanding', 'Consistent formatting']
+      },
+      {
+        name: 'gemini-pro',
+        label: 'Google Gemini Pro',
+        description: 'Advanced AI model with excellent reasoning capabilities',
+        features: ['Advanced reasoning', 'Complex document handling', 'High quality output']
+      }
+    ],
+    supportedDocumentTypes: [
+      {
+        type: 'Motion',
+        description: 'Formal requests to the court for specific relief or action',
+        examples: ['Motion for Increased Visitation', 'Motion for Reunification', 'Motion to Modify Case Plan']
+      },
+      {
+        type: 'Affidavit',
+        description: 'Sworn statements of facts under oath',
+        examples: ['Affidavit of Compliance', 'Affidavit of Changed Circumstances', 'Character Affidavit']
+      },
+      {
+        type: 'Objection',
+        description: 'Formal challenges to evidence or proceedings',
+        examples: ['Objection to Evidence', 'Objection to Testimony', 'Objection to Proposed Order']
+      }
+    ],
+    tips: [
+      'Be specific and detailed in your facts and reasons',
+      'Include dates, locations, and specific examples',
+      'State exactly what relief you want from the court',
+      'Always review and customize the generated document',
+      'Consider consulting with a legal professional before filing'
+    ]
   });
 }
