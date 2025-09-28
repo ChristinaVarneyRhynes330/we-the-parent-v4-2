@@ -16,8 +16,10 @@ import {
   AlertTriangle,
   CheckCircle,
   Settings,
-  LogOut
+  LogOut,
+  PlusCircle
 } from 'lucide-react';
+import { useCase } from '@/contexts/CaseContext'; // Import the hook
 
 interface NavigationItem {
   name: string;
@@ -47,6 +49,7 @@ function classNames(...classes: string[]) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { cases, activeCase, setActiveCase, loading } = useCase(); // Use the context
 
   return (
     <div className="flex flex-col w-64 bg-charcoal-navy">
@@ -59,12 +62,30 @@ export default function Sidebar() {
           <h1 className="ml-3 text-xl font-header text-white">We The Parent™</h1>
         </div>
 
-        {/* Case Info */}
+        {/* Case Info / Selector */}
         <div className="mt-6 px-4">
           <div className="bg-white/5 rounded-lg p-3">
-            <p className="text-xs text-warm-ivory/70 mb-1">Current Case</p>
-            <p className="text-sm text-white font-medium">2024-DP-000587-XXDP-BC</p>
-            <p className="text-xs text-warm-ivory/70 mt-1">5th Judicial Circuit</p>
+            <label htmlFor="case-selector" className="text-xs text-warm-ivory/70 mb-1 block">Current Case</label>
+            {loading ? (
+              <div className="text-sm text-white font-medium">Loading...</div>
+            ) : (
+              <select
+                id="case-selector"
+                className="w-full bg-transparent text-sm text-white font-medium border-none focus:ring-0"
+                value={activeCase?.id || ''}
+                onChange={(e) => setActiveCase(e.target.value)}
+              >
+                {cases.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-charcoal-navy">
+                    {c.name} ({c.case_number})
+                  </option>
+                ))}
+              </select>
+            )}
+             <button className="mt-2 w-full flex items-center justify-center py-1 px-2 text-xs text-white bg-white/10 hover:bg-white/20 rounded">
+                <PlusCircle className="w-4 h-4 mr-1" />
+                New Case
+            </button>
           </div>
         </div>
 

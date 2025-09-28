@@ -1,25 +1,25 @@
 {
-  // ✅ Only allow safe, essential built-in tools
-  "coreTools": [
-    "FileReadTool",
-    "FileWriteTool"
-  ],
-
-  // 🚫 Explicitly block dangerous or unnecessary tools/commands
-  "excludeTools": [
-    "ShellTool(rm -rf)",
-    "ShellTool(sudo)",
-    "ShellTool(del)",
-    "ShellTool(format)",
-    "ShellTool(shutdown)",
-    "ShellTool(reboot)"
-  ],
-
-  // 📡 MCP server configurations
+  "tools": {
+    "core": [
+      "FileReadTool",
+      "FileWriteTool"
+    ],
+    "exclude": [
+      "ShellTool(rm -rf)",
+      "ShellTool(sudo)",
+      "ShellTool(del)",
+      "ShellTool(format)",
+      "ShellTool(shutdown)",
+      "ShellTool(reboot)"
+    ]
+  },
   "mcpServers": {
     "supabase": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-supabase"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-supabase"
+      ],
       "env": {
         "SUPABASE_URL": "https://your-supabase-url.supabase.co",
         "SUPABASE_ANON_KEY": "your-anon-key"
@@ -27,13 +27,14 @@
     },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "your-github-token"
       }
     }
   },
-
-  // ⚠️ Safety: never auto-approve actions
   "agentYoloMode": false
 }

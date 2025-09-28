@@ -1,30 +1,23 @@
 {
-  "name": "We The Parent AI Legal Assistant",
-  "short_name": "We The Parent",
-  "description": "AI-powered legal assistance for Florida juvenile dependency cases",
+  "name": "We The Parent",
+  "short_name": "WeTheParent",
+  "description": "A Pro Se Litigant Assistant for family law cases, helping you organize evidence, track events, and build your case.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ea580c",
-  "orientation": "portrait-primary",
+  "background_color": "#F8F7F4",
+  "theme_color": "#1A2A4D",
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/android-chrome-512x512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "categories": ["productivity", "legal", "utilities"],
-  "lang": "en-US",
-  "dir": "ltr"
+  ]
 }

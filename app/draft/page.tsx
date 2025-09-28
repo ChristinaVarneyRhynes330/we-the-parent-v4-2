@@ -1,108 +1,174 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Wand2, Clipboard, Download } from 'lucide-react';
+import { FileText, Download, Clipboard, Book, ChevronDown } from 'lucide-react';
+import { useCase } from '@/contexts/CaseContext'; // Import the useCase hook
+
+// Mock data for document templates
+const documentTemplates = [
+  { id: 'motion-to-compel-discovery', name: 'Motion to Compel Discovery' },
+  { id: 'financial-affidavit', name: 'Financial Affidavit' },
+  { id: 'parenting-plan', name: 'Parenting Plan' },
+  { id: 'notice-of-hearing', name: 'Notice of Hearing' },
+];
 
 export default function DraftPage() {
-  const [documentType, setDocumentType] = useState('Motion');
-  const [reason, setReason] = useState('');
-  const [outcome, setOutcome] = useState('');
-  const [draft, setDraft] = useState('');
+  const { activeCase } = useCase(); // Get the active case
+  const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0].id);
+  const [userInstructions, setUserInstructions] = useState(''); // Add state for user instructions
+  const [generatedDraft, setGeneratedDraft] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = async () => {
+  const handleGenerateDraft = async () => {
+    if (!activeCase) {
+      alert('Please select a case first.');
+      return;
+    }
+
     setIsGenerating(true);
-    setError(null);
-    setDraft('');
+    setGeneratedDraft('');
 
     try {
       const response = await fetch('/api/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentType, reason, outcome }),
+        body: JSON.stringify({
+          templateId: selectedTemplate,
+          caseId: activeCase.id,
+          userInstructions: userInstructions,
+        }),
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate draft.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate draft.');
       }
-      setDraft(data.draft);
-    } catch (err: any) {
-      setError(err.message);
+
+      const data = await response.json();
+      setGeneratedDraft(data.draft);
+    } catch (error: any) {
+      console.error('Error generating draft:', error);
+      setGeneratedDraft(`// An error occurred: ${error.message}`);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleCopyToClipboard = () => {
+    if (generatedDraft) {
+      navigator.clipboard.writeText(generatedDraft);
+      alert('Draft copied to clipboard!');
+    }
+  };
+
+  const handleDownload = () => {
+    if (generatedDraft) {
+      const blob = new Blob([generatedDraft], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedTemplate}_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   };
 
   return (
     <div className="min-h-screen bg-warm-ivory p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-header text-charcoal-navy">Draft a Document</h1>
-          <p className="text-slate-gray mt-2">Use AI to generate legal document drafts based on your facts.</p>
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-4xl font-header text-charcoal-navy">Draft Generator</h1>
+            <p className="text-slate-gray mt-2">Select a template and provide instructions to generate a new legal document.</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Input Form */}
-          <div className="card">
-            <h2 className="section-subheader mb-4">1. Provide Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="form-label">Document Type</label>
-                <select value={documentType} onChange={(e) => setDocumentType(e.target.value)} className="form-input">
-                  <option>Motion</option>
-                  <option>Affidavit</option>
-                  <option>Objection</option>
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Facts & Reasons</label>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={5}
-                  className="form-input"
-                  placeholder="e.g., I have completed my parenting classes, secured a full-time job, and have a stable, two-bedroom apartment."
-                />
-              </div>
-              <div>
-                <label className="form-label">Desired Outcome</label>
-                <textarea
-                  value={outcome}
-                  onChange={(e) => setOutcome(e.target.value)}
-                  rows={3}
-                  className="form-input"
-                  placeholder="e.g., I am requesting the court to grant overnight visitation with my child."
-                />
-              </div>
-              <button onClick={handleGenerate} disabled={isGenerating} className="button-primary w-full flex items-center justify-center gap-2">
-                <Wand2 className="w-5 h-5" />
-                {isGenerating ? 'Generating...' : 'Generate Draft'}
+        <div className="card mb-8 space-y-4">
+          <div>
+            <label htmlFor="template-select" className="block text-sm font-medium text-slate-gray mb-2">
+              Document Template
+            </label>
+            <div className="relative">
+              <select
+                id="template-select"
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+                className="input-field w-full appearance-none"
+                disabled={isGenerating}
+              >
+                {documentTemplates.map(template => (
+                  <option key={template.id} value={template.id}>{template.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-gray pointer-events-none" />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="user-instructions" className="block text-sm font-medium text-slate-gray mb-2">
+              Specific Instructions (Optional)
+            </label>
+            <textarea
+              id="user-instructions"
+              rows={3}
+              value={userInstructions}
+              onChange={(e) => setUserInstructions(e.target.value)}
+              className="input-field w-full"
+              placeholder="e.g., 'Cite the attached affidavit from John Doe...'"
+              disabled={isGenerating}
+            />
+          </div>
+          <div className="text-right">
+            <button
+              onClick={handleGenerateDraft}
+              disabled={isGenerating || !activeCase}
+              className="button-primary flex items-center justify-center gap-2 sm:self-end"
+            >
+              <Book className="w-5 h-5" />
+              {isGenerating ? 'Generating...' : 'Generate Draft'}
+            </button>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="section-subheader">Generated Draft</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyToClipboard}
+                disabled={!generatedDraft || isGenerating}
+                className="button-secondary p-2"
+                title="Copy to Clipboard"
+              >
+                <Clipboard className="w-5 h-5" />
               </button>
-              {error && <p className="form-error mt-2">{error}</p>}
+              <button
+                onClick={handleDownload}
+                disabled={!generatedDraft || isGenerating}
+                className="button-secondary p-2"
+                title="Download as .txt"
+              >
+                <Download className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
-          {/* Output Display */}
-          <div className="card">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="section-subheader">2. Review & Finalize</h2>
-              {draft && (
-                <div className="flex gap-2">
-                  <button onClick={() => navigator.clipboard.writeText(draft)} className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg transition-colors" title="Copy">
-                    <Clipboard className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-olive-emerald hover:bg-olive-emerald/10 rounded-lg transition-colors" title="Download">
-                    <Download className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
+          {isGenerating ? (
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
             </div>
-            <div className="prose prose-sm max-w-none bg-white p-4 rounded-lg border h-96 overflow-y-auto">
-              {isGenerating ? <p>Generating your document...</p> : draft || <p>Your generated document will appear here.</p>}
-            </div>
-          </div>
+          ) : (
+            <textarea
+              readOnly
+              value={generatedDraft}
+              placeholder="Your generated document will appear here..."
+              className="w-full h-96 p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm text-charcoal-navy focus:ring-brand focus:border-brand"
+            />
+          )}
         </div>
       </div>
     </div>

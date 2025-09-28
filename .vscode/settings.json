@@ -25,5 +25,9 @@
     "**/coverage": true,
     "**/out": true,
     "**/public": true
-  }
+  },
+  "geminicodeassist.agentDebugMode": true,
+  "geminicodeassist.codeGenerationPaneViewEnabled": true,
+  "geminicodeassist.updateChannel": "Default",
+  "geminicodeassist.verboseLogging": true
 }

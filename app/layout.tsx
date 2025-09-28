@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { DM_Serif_Display, Work_Sans } from 'next/font/google';
 import '../styles/globals.css';
 import AppClientLayout from '@/components/AppClientLayout'; // Import the new component
+import Providers from '@/components/Providers';
 
 const dmSerif = DM_Serif_Display({
   subsets: ['latin'],
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
     shortcut: '/favicon-16x16.png',
     apple: '/apple-touch-icon.png',
   },
-  manifest: '/site.webmanifest',
+  manifest: '/manifest.json',
 };
 
 interface RootLayoutProps {
@@ -74,7 +75,9 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${dmSerif.variable} ${workSans.variable}`}>
-      <AppClientLayout>{children}</AppClientLayout>
+      <Providers>
+        <AppClientLayout>{children}</AppClientLayout>
+      </Providers>
     </html>
   );
 }

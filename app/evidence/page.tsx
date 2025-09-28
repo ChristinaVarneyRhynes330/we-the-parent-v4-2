@@ -22,7 +22,7 @@ export default function EvidencePage() {
   
   // The caseId is now stored in the page's state.
   // The unused 'setCaseId' has been removed.
-  const [caseId] = useState('05-2024-DP-000587-XXDP-BC');
+  const { activeCase } = useCase(); // Use the case context
 
   useEffect(() => {
     const fetchEvidence = async () => {

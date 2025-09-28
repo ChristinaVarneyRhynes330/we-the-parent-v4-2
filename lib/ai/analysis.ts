@@ -1,57 +1,30 @@
-import Groq from 'groq-sdk';
+import { gemini } from '@/lib/gemini';
 
-const groq = new Groq({
-  apiKey: process.env.AI_API_KEY,
-});
-
-export async function performDocumentAnalysis(documentContent: string): Promise<{ documentType: string; summary: string }> {
-  if (!process.env.AI_API_KEY) {
-    throw new Error('Groq API key not configured');
-  }
-
-  const prompt = `
-    Analyze the following document content from a Florida juvenile dependency case.
-    Determine its type and provide a concise one-sentence summary.
-    Possible document types are: Motion, Affidavit, Court Order, Letter, Evidence, or Other.
-    
-    Respond with ONLY a valid JSON object with two keys: "documentType" and "summary".
-    
-    Document Content:
-    ---
-    ${documentContent.substring(0, 8000)} 
-    ---
-  `;
+export async function analyzeDocument(documentContent: string): Promise<{ documentType: string; summary: string; keyDates: string[] }> {
+  const prompt = `Analyze the following legal document content. Return a JSON object with three keys: "documentType" (e.g., "Motion", "Affidavit", "Order"), "summary" (a concise one-paragraph summary), and "keyDates" (an array of any dates found in YYYY-MM-DD format). Content: ${documentContent.substring(0, 15000)}`; // Limiting content length for safety
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gemma2-9b-it", // FIX: Using a currently active model
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-    });
-
-    const responseText = completion.choices[0]?.message?.content;
-    if (!responseText) {
-      throw new Error('Empty response from Groq');
-    }
-
-    const analysis = JSON.parse(responseText);
+    const result = await gemini.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
-    if (!analysis.documentType || !analysis.summary) {
-      throw new Error('Invalid response format from AI');
-    }
+    // Clean the response to get only the JSON part
+    const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    const parsed = JSON.parse(jsonString);
 
-    return analysis;
-
-  } catch (error) {
-    console.error("========================================");
-    console.error("Groq API Error in analysis function:");
-    console.error(error);
-    console.error("========================================");
-    
     return {
-      documentType: "Other",
-      summary: "Could not analyze the document content."
+      documentType: parsed.documentType || 'Unknown',
+      summary: parsed.summary || 'Could not generate summary.',
+      keyDates: parsed.keyDates || [],
+    };
+  } catch (error) {
+    console.error("Error analyzing document with Gemini:", error);
+    return {
+      documentType: 'Error',
+      summary: 'Failed to analyze document.',
+      keyDates: [],
     };
   }
-};
+}
+
+// Other AI task functions will be re-implemented here later.

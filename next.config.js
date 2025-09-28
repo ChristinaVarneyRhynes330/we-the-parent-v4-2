@@ -1,3 +1,33 @@
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching: [
+    {
+      urlPattern: /\/api\/events/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "api-events-cache",
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60, // 1 Day
+        },
+      },
+    },
+    {
+      urlPattern: /\/api\/documents/,
+      handler: "StaleWhileRevalidate",
+      options: {
+        cacheName: "api-documents-cache",
+        expiration: {
+          maxEntries: 30,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 1 Week
+        },
+      },
+    },
+  ],
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -60,4 +90,4 @@ const nextConfig = {
   output: 'standalone',
 };
 
-module.exports = nextConfig;
+module.exports = withPWA(nextConfig);

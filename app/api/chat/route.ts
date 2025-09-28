@@ -1,67 +1,74 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
-import Groq from 'groq-sdk';
+import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { OpenAI } from 'openai';
+import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { pipeline } from '@xenova/transformers';
 
-const groq = new Groq({ apiKey: process.env.AI_API_KEY });
+export const runtime = 'edge';
 
-export async function POST(request: NextRequest) {
-  const { message } = await request.json();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-  if (!message) {
-    return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+export async function POST(req: NextRequest) {
+  const { messages } = await req.json();
+  const supabase = createClient();
+
+  const lastMessage = messages[messages.length - 1];
+  const userQuery = lastMessage.content;
+
+  // 1. Generate an embedding for the user's query
+  const extractor = await pipeline('feature-extraction', 'Xenova/gte-small');
+  const output = await extractor(userQuery, { pooling: 'mean', normalize: true });
+  const query_embedding = Array.from(output.data);
+
+  // 2. Query Supabase for relevant document chunks
+  const { data: chunks, error: rpcError } = await supabase.rpc('match_document_chunks', {
+    query_embedding,
+    match_threshold: 0.7,
+    match_count: 5,
+  });
+
+  if (rpcError) {
+    console.error('RPC Error:', rpcError);
+    return NextResponse.json({ error: 'Failed to fetch relevant documents.' }, { status: 500 });
   }
 
+  // 3. Construct the context string
+  const context = chunks.map((c: any) => c.content).join('\n\n');
+
+  // 4. Construct the new prompt
+  const prompt = `You are a helpful legal assistant. Answer the user's question based *only* on the following context from their case documents. If the answer is not in the context, say 'I cannot find the answer in the provided documents.'
+
+Context:
+${context}
+
+Question: ${userQuery}`;
+
+  // 5. Create a new messages array with the new prompt
+  const newMessages = [
+    ...messages.slice(0, -1),
+    { role: 'user', content: prompt },
+  ];
+
   try {
-    const supabase = createServiceClient();
-
-    // 1. Get an embedding for the user's question from our Edge Function
-    const { data: embeddingData, error: embeddingError } = await supabase.functions.invoke('generate-embedding', {
-      body: { text: message },
-    });
-    if (embeddingError) throw embeddingError;
-
-    // 2. Search for relevant document chunks using the database function
-    const { data: chunks, error: matchError } = await supabase
-      .rpc('match_document_chunks', {
-        query_embedding: embeddingData.embedding,
-        match_threshold: 0.7, // You can adjust this threshold
-        match_count: 5,       // And the number of chunks to retrieve
-      });
-    
-    if (matchError) throw matchError;
-
-    // 3. Construct a prompt with the retrieved context
-    const contextText = chunks && chunks.length > 0
-      ? chunks.map(c => `- ${c.content}`).join('\n')
-      : "No context found.";
-
-    const prompt = `
-      You are an AI legal assistant for a pro se parent in a Florida juvenile dependency case.
-      Answer the user's question based *only* on the provided context from their case documents.
-      Be concise, helpful, and do not provide legal advice. If the context doesn't contain the answer, say "I could not find an answer in your documents."
-
-      Context from documents:
-      ---
-      ${contextText}
-      ---
-
-      User's question:
-      ${message}
-    `;
-
-    // 4. Call Groq with the augmented prompt
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gemma2-9b-it',
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      stream: true,
+      messages: newMessages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
     });
 
-    const response = completion.choices[0]?.message?.content;
-    if (!response) throw new Error('Failed to get a response from the AI.');
+    const stream = OpenAIStream(response);
 
-    return NextResponse.json({ response });
-
-  } catch (error: any) {
-    console.error("Chat API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return new StreamingTextResponse(stream);
+  } catch (error) {
+    console.error('Chat API Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process chat message.' },
+      { status: 500 }
+    );
   }
 }

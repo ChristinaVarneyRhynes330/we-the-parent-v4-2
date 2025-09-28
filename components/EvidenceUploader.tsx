@@ -39,7 +39,7 @@ export default function EvidenceUploader({ onUploadSuccess, caseId }: EvidenceUp
     formData.append('file', file);
     formData.append('caseId', caseId);
 
-    const response = await fetch('/api/evidence', {
+    const response = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
     });
