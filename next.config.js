@@ -79,10 +79,7 @@ const nextConfig = {
     return config;
   },
   
-  experimental: {
-    appDir: true,
-    serverComponentsExternalPackages: ['@supabase/supabase-js']
-  },
+  serverExternalPackages: ['@supabase/supabase-js'],
   
   poweredByHeader: false,
   compress: true,

@@ -1,91 +1,118 @@
 import { test, expect } from '@playwright/test';
 
-// The base URL is configured in playwright.config.ts
-const TIMELINE_URL = '/timeline';
+test.describe('Timeline Event Management', () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to the timeline page before each test
+    await page.goto('/timeline');
+    // Mock the initial state if necessary, e.g., login status
+    // For now, we assume the user is logged in and on the correct page.
+  });
 
-/**
- * This test covers the full end-to-end user flow for creating and deleting a timeline event.
- * It uses Playwright's network interception to mock API responses, ensuring the test is
- * fast, reliable, and independent of the actual backend state.
- */
-test.describe('Timeline Event CRUD Operations', () => {
-  test('should allow a user to create and then delete an event', async ({ page }) => {
-    // --- Test Data ---
-    const eventTitle = `Review preliminary hearing transcript ${Date.now()}`;
-    const eventDescription = 'The transcript was 200 pages long and contained key details.';
-    const eventDate = '2025-11-15';
-    const eventDateFormatted = '11/15/2025'; // US locale format
+  test('Successfully create a new timeline event', async ({ page }) => {
+    // Get initial event count
+    const initialCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const initialCount = initialCountText ? parseInt(initialCountText.match(/\d+/)?.[0] || '0') : 0;
 
-    // --- Mock API State ---
-    let mockEventsDb: any[] = [];
+    // Click "Add New Event"
+    await page.getByRole('button', { name: 'Add New Event' }).click();
 
-    // Intercept API calls to mock the backend
-    await page.route('**/api/events**', async (route, request) => {
-      const method = request.method();
+    // Fill out the form
+    await page.getByLabel('Event Title').fill('Filed Motion to Compel Discovery');
+    await page.getByLabel('Event Date').fill('2025-10-15');
+    await page.getByLabel('Event Description').fill('Filed the motion with the clerk of courts after the opposing party failed to respond.');
 
-      // Mock GET request to fetch all events
-      if (method === 'GET') {
-        return route.fulfill({ status: 200, json: { events: mockEventsDb } });
-      }
-
-      // Mock POST request to create an event
-      // NOTE: This assumes your form submission triggers a POST request.
-      if (method === 'POST') {
-        const newEvent = {
-          id: `mock_id_${Date.now()}`,
-          title: eventTitle,
-          description: eventDescription,
-          date: eventDate,
-        };
-        mockEventsDb.push(newEvent);
-        return route.fulfill({ status: 201, json: newEvent });
-      }
-
-      // Mock DELETE request
-      if (method === 'DELETE') {
-        const url = request.url();
-        const id = url.split('/').pop();
-        mockEventsDb = mockEventsDb.filter(event => event.id !== id);
-        return route.fulfill({ status: 200 });
-      }
-
-      // Allow other requests to pass through
-      return route.continue();
-    });
-
-    // --- 1. Navigate and Verify Initial State ---
-    await page.goto(TIMELINE_URL);
-    await expect(page.getByRole('heading', { name: 'Case Timeline' })).toBeVisible();
-    // Initially, no events should be present
-    await expect(page.getByText(eventTitle)).not.toBeVisible();
-
-    // --- 2. Create a New Event ---
-    await page.getByRole('button', { name: 'Add Event' }).click();
-
-    // Fill out the form. Note: getByLabel is preferred. If your form doesn't use
-    // labels, you might need to use getByPlaceholder or other selectors.
-    await page.getByLabel('Title').fill(eventTitle);
-    await page.getByLabel('Date').fill(eventDate);
-    await page.getByLabel('Description').fill(eventDescription);
+    // Click "Save Event"
     await page.getByRole('button', { name: 'Save Event' }).click();
 
-    // --- 3. Verify Event Creation ---
-    // The new event should now be visible on the timeline.
-    const newEventLocator = page.locator('div').filter({ hasText: eventTitle }).first();
-    await expect(newEventLocator).toBeVisible();
-    await expect(page.getByText(eventDescription)).toBeVisible();
-    await expect(page.getByText(eventDateFormatted)).toBeVisible();
-
-    // --- 4. Delete the Event ---
-    // Find the delete button within the scope of the newly created event
-    await newEventLocator.getByRole('button', { name: 'Delete' }).click();
-
-    // If you have a custom confirmation modal, you would assert its visibility
-    // and click the confirmation button here. For native browser `confirm()` dialogs,
-    // Playwright accepts them by default.
-
-    // --- 5. Verify Event Deletion ---
-    // The event should no longer be visible in the DOM.
-    await expect(page.getByText(eventTitle)).not.toBeVisible();
+    // Assertions
+    await expect(page.getByText('Event created successfully')).toBeVisible();
+    await expect(page.getByText('Filed Motion to Compel Discovery')).toBeVisible();
+    
+    const newCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const newCount = newCountText ? parseInt(newCountText.match(/\d+/)?.[0] || '0') : 0;
+    expect(newCount).toBe(initialCount + 1);
   });
+
+  test('Edit an existing timeline event', async ({ page }) => {
+    // Pre-condition: Create an event to edit
+    // This should ideally be done via an API call to speed up tests
+    await page.getByRole('button', { name: 'Add New Event' }).click();
+    await page.getByLabel('Event Title').fill('Initial Consultation');
+    await page.getByLabel('Event Date').fill('2025-09-01');
+    await page.getByRole('button', { name: 'Save Event' }).click();
+    await expect(page.getByText('Event created successfully')).toBeVisible();
+    
+    const initialCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const initialCount = initialCountText ? parseInt(initialCountText.match(/\d+/)?.[0] || '0') : 0;
+
+    // Find and edit the event
+    const eventRow = page.locator('div.event-item', { hasText: 'Initial Consultation' });
+    await eventRow.getByRole('button', { name: 'Edit' }).click();
+
+    // Update the form
+    await page.getByLabel('Event Title').fill('Strategy Meeting with Counsel');
+    await page.getByLabel('Event Date').fill('2025-11-01');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    // Assertions
+    await expect(page.getByText('Event updated successfully')).toBeVisible();
+    await expect(page.getByText('Strategy Meeting with Counsel')).toBeVisible();
+    await expect(page.getByText('November 1, 2025')).toBeVisible();
+    
+    const newCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const newCount = newCountText ? parseInt(newCountText.match(/\d+/)?.[0] || '0') : 0;
+    expect(newCount).toBe(initialCount);
+  });
+
+  test('Delete a timeline event', async ({ page }) => {
+    // Pre-condition: Create an event to delete
+    await page.getByRole('button', { name: 'Add New Event' }).click();
+    await page.getByLabel('Event Title').fill('Mediation Session');
+    await page.getByLabel('Event Date').fill('2025-10-20');
+    await page.getByRole('button', { name: 'Save Event' }).click();
+    await expect(page.getByText('Event created successfully')).toBeVisible();
+
+    const initialCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const initialCount = initialCountText ? parseInt(initialCountText.match(/\d+/)?.[0] || '0') : 0;
+
+    // Find and delete the event
+    const eventRow = page.locator('div.event-item', { hasText: 'Mediation Session' });
+    page.on('dialog', dialog => dialog.accept()); // Handle confirmation dialog
+    await eventRow.getByRole('button', { name: 'Delete' }).click();
+
+    // Assertions
+    await expect(page.getByText('Event deleted successfully')).toBeVisible();
+    await expect(page.getByText('Mediation Session')).not.toBeVisible();
+    
+    const newCountText = await page.locator('data-testid=total-events-stat').textContent();
+    const newCount = newCountText ? parseInt(newCountText.match(/\d+/)?.[0] || '0') : 0;
+    expect(newCount).toBe(initialCount - 1);
+  });
+
+  const validationTestCases = [
+    { title: '', date: '2025-12-10', errorMessage: 'Event Title is a required field' },
+    { title: 'Phone call with witness', date: '', errorMessage: 'Event Date is a required field' },
+    { title: '', date: '', errorMessage: 'Event Title and Date are required' },
+  ];
+
+  for (const { title, date, errorMessage } of validationTestCases) {
+    test(`Attempt to create an event with missing info: ${errorMessage}`, async ({ page }) => {
+      const initialCountText = await page.locator('data-testid=total-events-stat').textContent();
+      const initialCount = initialCountText ? parseInt(initialCountText.match(/\d+/)?.[0] || '0') : 0;
+      
+      await page.getByRole('button', { name: 'Add New Event' }).click();
+
+      if (title) await page.getByLabel('Event Title').fill(title);
+      if (date) await page.getByLabel('Event Date').fill(date);
+      
+      await page.getByRole('button', { name: 'Save Event' }).click();
+
+      // Assertions
+      await expect(page.getByText(errorMessage)).toBeVisible();
+      
+      const newCountText = await page.locator('data-testid=total-events-stat').textContent();
+      const newCount = newCountText ? parseInt(newCountText.match(/\d+/)?.[0] || '0') : 0;
+      expect(newCount).toBe(initialCount);
+    });
+  }
 });

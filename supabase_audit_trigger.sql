@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.predicates (
 
 -- 2. Create the audit_logs table
 -- This table will store the history of changes from the 'predicates' table.
-CREATE TABLE public.audit_logs (
+CREATE TABLE IF NOT EXISTS public.audit_logs (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   table_name TEXT NOT NULL,
   record_id BIGINT, -- Can be NULL if the record is deleted and has no ID
@@ -54,6 +54,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 3. Attach the trigger to the 'predicates' table
 -- This command tells the database to execute the log_predicate_changes() function
 -- after any INSERT, UPDATE, or DELETE on the 'predicates' table.
+DROP TRIGGER IF EXISTS predicates_audit_trigger ON public.predicates;
 CREATE TRIGGER predicates_audit_trigger
 AFTER INSERT OR UPDATE OR DELETE ON public.predicates
 FOR EACH ROW EXECUTE FUNCTION public.log_predicate_changes();
@@ -63,6 +64,7 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Create a policy that allows users to view their own audit logs.
 -- Adjust this policy based on your application's security requirements.
+DROP POLICY IF EXISTS "Allow users to view their own audit logs" ON public.audit_logs;
 CREATE POLICY "Allow users to view their own audit logs" 
 ON public.audit_logs 
 FOR SELECT 

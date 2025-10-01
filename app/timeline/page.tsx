@@ -60,6 +60,7 @@ const TimelinePage = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Case Timeline</h1>
+        <div data-testid="total-events-stat">Total Number of Events: {events.length}</div>
         <Button onClick={handleShowAddForm}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Event
@@ -92,7 +93,7 @@ const TimelinePage = () => {
                   <Button variant="outline" size="sm" onClick={() => handleShowEditForm(event)}>Edit</Button>
                   <Button variant="destructive" size="sm" onClick={() => deleteEvent(event.id)} disabled={isDeleting}>
                     {isDeleting ? 'Deleting...' : 'Delete'}
-                  </A_SECOND_ONE>
+                  </Button>
                 </div>
               </div>
             </div>

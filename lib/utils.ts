@@ -1,3 +1,10 @@
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 /**
  * Splits a long text into smaller, overlapping chunks.
  * This is a key step for preparing data for Retrieval-Augmented Generation (RAG).

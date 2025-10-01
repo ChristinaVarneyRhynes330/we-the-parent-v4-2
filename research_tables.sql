@@ -1,6 +1,6 @@
 -- 1. Create the research_results table
 -- This table stores the high-level summary and query for each research task.
-CREATE TABLE public.research_results (
+CREATE TABLE IF NOT EXISTS public.research_results (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   case_id UUID NOT NULL REFERENCES public.cases(id) ON DELETE CASCADE,
   query TEXT NOT NULL,
@@ -13,7 +13,7 @@ COMMENT ON TABLE public.research_results IS 'Stores user research queries and th
 
 -- 2. Create the citations table
 -- This table links each research result to the specific document chunks that support it.
-CREATE TABLE public.citations (
+CREATE TABLE IF NOT EXISTS public.citations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   research_result_id UUID NOT NULL REFERENCES public.research_results(id) ON DELETE CASCADE,
   document_chunk_id UUID NOT NULL REFERENCES public.document_chunks(id) ON DELETE CASCADE, -- Assuming you have a document_chunks table
@@ -30,11 +30,13 @@ ALTER TABLE public.citations ENABLE ROW LEVEL SECURITY;
 
 -- 4. Create RLS Policies
 -- Define rules for who can access or modify the data.
+DROP POLICY IF EXISTS "Allow users to manage their own research results" ON public.research_results;
 CREATE POLICY "Allow users to manage their own research results" 
 ON public.research_results
 FOR ALL
 USING (auth.uid() = created_by);
 
+DROP POLICY IF EXISTS "Allow users to view citations for their own research" ON public.citations;
 CREATE POLICY "Allow users to view citations for their own research" 
 ON public.citations
 FOR SELECT
