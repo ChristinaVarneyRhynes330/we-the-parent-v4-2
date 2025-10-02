@@ -1,104 +1,61 @@
-# Project: We The Parent™ - AI-Augmented Legal Assistant (Definitive Plan)
+# 📘 We The Parent™ – Master GEMINI.md (v2.0 - Iterative)
 
-## 1. High-Level Vision & AI Agent Directives
+## 1. 🎯 Mission
+Build a zero-cost, AI-powered legal assistant for a pro se parent in a Florida juvenile dependency case.
+**Top priority:** Repair the foundational issues, get all existing tests to pass, then complete the remaining features in the strict, sequential order outlined in the Project Task Checklist.
 
-**Project Goal:** To urgently complete a zero-cost, fully functional, and legally knowledgeable AI-powered legal assistant for a pro se parental defender in a Brevard County, Florida juvenile dependency case.
+## 2. 📜 AI Agent Constitution (Unbreakable Rules)
+- **Analyze First, Code Second:** Always cite the files you are reviewing before generating any code.
+- **Strict Adherence to Blueprint:** Every feature must follow the `API -> Hook -> UI -> Test` pipeline.
+- **Sequential Execution:** You must complete the tasks in the checklist (Section 6) in their exact numerical order.
+- **Approval Required:** Propose any major architectural changes not listed here and wait for my approval before implementing.
+- **Safety & Verification:** Always show a diff before writing to a file. Ensure all code passes TypeScript checks and that its corresponding test is green before considering a task complete.
 
-**AI Agent Core Directives:**
-- **Analyze First, Code Second:** Before generating any code, you MUST analyze all relevant existing files to ensure new code follows the established "Blueprint Strategy" (API -> Hook -> UI -> Test).
-- **Strict Adherence to this Plan:** You must follow the phases and tasks in this plan sequentially.
-- **Request Approval for Changes:** For any significant architectural changes not explicitly listed here, you must first describe your proposed change and ask for my approval.
-- **Zero-Cost Implementation:** All suggested tools must have a sufficient free tier.
+## 3. 🏛️ Architectural Blueprint
+1.  **Pipeline Rule:** `API -> Hook -> UI -> Test`. This is the required pattern for all feature development.
+2.  **Iterative Loop:** The workflow for every task is **`Develop -> Verify -> Debug`**. A task is only complete when its test passes.
+3.  **Proactive Intelligence:** New information (document uploads, user chat input) must automatically trigger AI analysis to update the Timeline, Narrative, and other relevant features.
 
----
+## 4. ✅ Project Task Checklist
+*(To be executed in strict sequential order)*
 
-## 2. 🛡️ AI Agent Safety Rules & Configuration
+### **Phase 1: Foundation Repair (Highest Priority)**
+* [ ] **Task 1.1: Database Migrations**
+    * **Description:** Create and apply a single SQL migration to ensure all required tables exist in the Supabase database.
+* [ ] **Task 1.2: Environment Configuration**
+    * **Description:** Generate a `.env.local.example` file for the user to configure.
+* [ ] **Task 1.3: Remove Hardcoded `CASE_ID`**
+    * **Description:** Refactor all files to remove the hardcoded `CASE_ID` constant and replace it with the dynamic `useCase()` context.
+* [ ] **Task 1.4: Fix API and Pass All Tests**
+    * **Description:** Repair the `/api/events` route, which is the root cause of all 6 failing Playwright tests, and ensure all existing tests pass.
 
-- **Approved Tools:** Only use `file read`, `file write`, and `fetch` tools.
-- **Prohibited Commands:** Block destructive commands like `rm -rf`, `sudo`, and `del`.
-- **Diff Confirmation:** Always show a diff before writing to any file.
+### **Phase 2: In-Progress Feature Completion**
+* [ ] **Task 2.1: Finalize Narrative Builder**
+    * **Description:** Complete the `useNarrative.ts` hook and fully integrate it into the `app/narrative/page.tsx` UI.
+* [ ] **Task 2.2: Finalize Document Drafting**
+    * **Description:** Complete the `useDrafts.ts` hook and wire it into the `app/draft/page.tsx` UI.
+* [ ] **Task 2.3: Finalize Compliance Tracking**
+    * **Description:** Implement the `useCompliance.ts` hook and integrate it with the backend.
 
----
+### **Phase 3: Strategic Feature Implementation**
+* [ ] **Task 3.1: Implement Proactive Intelligence Layer**
+    * **Description:** Create the Supabase Edge Function and AI task that automatically analyzes new documents and populates the Timeline.
+* [ ] **Task 3.2: Enhance Calendar View**
+    * **Description:** Upgrade the calendar with `react-big-calendar` and color-coded events.
+* [ ] **Task 3.3: Build the Pre-Hearing "Prep Room"**
+    * **Description:** Create the `app/prep-room/[hearingId]/page.tsx` UI for mock hearings and objection practice.
 
-## 3. Phase 1: Completing Core Features (Highest Priority)
+### **Phase 4: Courtroom Readiness & Launch**
+* [ ] **Task 4.1: Implement Live Courtroom Helper (De-risked Milestones)**
+    * **Description:** Build the real-time hearing assistant in three distinct, verifiable stages.
+    * [ ] **Milestone 4.1.1 (Audio Upload & Transcription):** Build a non-real-time feature. Create a page where a user can upload a pre-recorded audio file and have it transcribed by an AI task (`transcribeAudioFile`). This validates the core transcription pipeline first.
+    * [ ] **Milestone 4.1.2 (Live Client-Side Transcription):** Build the real-time UI. Create the `app/courtroom-helper/page.tsx` and `components/RealTimeTranscriber.tsx`. Implement live audio capture and display the text on screen using the browser's `SpeechRecognition` API. At this stage, there is NO AI analysis. This validates the audio stream.
+    * [ ] **Milestone 4.1.3 (Real-Time AI Analysis Integration):** Connect the live transcript to the AI. Implement the `liveCourtroomAnalysis` function with the multi-task prompt. Modify the transcriber to send text chunks on a debounce to the AI and display the structured JSON results in the UI panels.
+* [ ] **Task 4.2: Final Testing & UAT**
+    * **Description:** Conduct a final accessibility and performance audit, and then generate the User Acceptance Testing (UAT) plan.
 
-**Objective:** To finalize all partially completed core features, following the established "Blueprint Strategy".
-
-- [ ] **Task 1.1: Complete Document & Evidence Management**
-    - **Description:** Finalize the system for uploading, viewing, and managing all case documents and evidence.
-    - **Instructions:**
-        1.  Create the missing API endpoints in `app/api/documents/` for deleting and updating document metadata.
-        2.  Integrate the `useDocuments.ts` hook fully into `app/documents/page.tsx` and `app/evidence/page.tsx` to handle all data operations.
-        3.  Write a complete end-to-end test file at `tests/documents.spec.ts`, using `tests/timeline.spec.ts` as a template.
-
-- [ ] **Task 1.2: Build the Case Narrative Feature**
-    - **Description:** Implement the UI and backend for creating and managing a chronological case narrative.
-    - **Instructions:**
-        1.  Create a new `narrative_tables.sql` file to define the schema for storing narrative entries.
-        2.  Create the full API route at `app/api/narrative/route.ts` for all CRUD operations.
-        3.  Create the `hooks/useNarrative.ts` custom hook.
-        4.  Build out the UI in the existing `app/narrative/page.tsx` file, using the new hook.
-        5.  Write the corresponding `tests/narrative.spec.ts` file.
-
-- [ ] **Task 1.3: Finalize Document Drafting**
-    - **Description:** Fully integrate the document drafting, template population, and compliance checking features.
-    - **Instructions:**
-        1.  Create the `hooks/useDrafts.ts` hook if it doesn't exist.
-        2.  Connect the `app/draft/page.tsx` UI to the existing `api/draft/route.ts` via the new hook.
-        3.  Implement the logic for populating document templates with data from the `useCase` hook or equivalent.
-        4.  Write the `tests/drafting.spec.ts` file.
-
-- [ ] **Task 1.4: Finalize Compliance Tracking**
-    - **Description:** Complete the feature for tracking compliance with case plan tasks.
-    - **Instructions:**
-        1.  Create the `hooks/useCompliance.ts` hook.
-        2.  Integrate the `app/compliance/page.tsx` UI with the existing `api/compliance/route.ts` via the new hook.
-        3.  Write the `tests/compliance.spec.ts` file.
-
-- [ ] **Task 1.5: Implement Calendar View**
-    - **Description:** Create a visual calendar of all case events.
-    - **Instructions:**
-        1.  This is primarily a UI task. Modify the `app/calendar/page.tsx` file to fetch data from the `useTimeline.ts` hook.
-        2.  Integrate a free calendar component library (e.g., `react-big-calendar`) to display the events.
-
----
-
-## 4. Phase 2: Implementing Advanced Features
-
-**Objective:** To build the high-impact, specialized features from your notes, following the established blueprint.
-
-- [ ] **Task 2.1: Implement Live Interactive Courtroom Helper**
-    - **Description:** A real-time assistant for use during hearings, providing transcription, objection suggestions, and jargon explanations.
-    - **Instructions:**
-        1.  Create the UI page at `app/courtroom-helper/page.tsx`.
-        2.  Create the `components/RealTimeTranscriber.tsx` component using the browser's `SpeechRecognition` API (zero-cost).
-        3.  In `lib/ai/analysis.ts`, create the `liveCourtroomAnalysis` function with the required multi-task prompt (objection detection, response formulation, jargon explanation).
-        4.  Integrate the front end to call this AI task and display the results in real-time assistance panels.
-        5.  Add the post-hearing functionality to save and clean the final transcript.
-
-- [ ] **Task 2.2: Implement Predictive Analytics & Outcome Forecasting**
-    - **Description:** An AI model that forecasts potential case outcomes.
-    - **Instructions:**
-        1.  Create a UI page at `app/analytics/page.tsx` with a form for inputting predictive model variables (judge profile, etc.).
-        2.  Create a new AI task `getCaseForecast` in `lib/ai/analysis.ts` that uses a detailed prompt to generate a forecast based on the user's input.
-
-- [ ] **Task 2.3: Implement Document Contradiction Index Engine**
-    - **Description:** An AI tool that automatically flags inconsistencies across case documents.
-    - **Instructions:**
-        1.  Write a new Supabase Edge Function that triggers after a document has been embedded.
-        2.  This function will use an AI prompt to compare the new document's summary against all others for the case and log contradictions.
-        3.  Create a UI at `app/contradictions/page.tsx` to display the findings.
-
----
-
-## 5. Phase 3: Final Polish & Validation
-
-**Objective:** To ensure the application is robust, accessible, and ready for your use.
-
-- [ ] **Task 3.1: Final UI/UX and Accessibility Audit**
-    - **Description:** A final review to ensure a professional and accessible user experience.
-    - **Instructions:** The AI agent will perform an audit of the application, focusing on complex forms and pages, and provide code corrections for any UI or accessibility issues found.
-
-- [ ] **Task 3.2: Final User Acceptance Testing (UAT)**
-    - **Description:** Your final, manual check of all features.
-    - **Instructions:** The AI agent will generate a UAT plan for you to follow, allowing you to personally verify that every feature is working correctly.
+## 5. 📝 Prompt Quick Reference
+* **Foundation Fixes:**
+    * `@workspace Analyze all .sql files. Generate a single SQL migration that creates all required tables if they do not exist. Show the full SQL.`
+    * `@workspace List all required environment variables for this project and generate a .env.local.example file with comments.`
+    * `@workspace The Playwright tests are failing. Diagnose the root cause of the failure in /api/events and fix the route. Rerun the tests until all 6 pass.`
