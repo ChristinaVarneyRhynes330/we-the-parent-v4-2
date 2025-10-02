@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { FileText, Upload, Search, Filter, Download, Eye, Trash2, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 import DocumentPreview from '@/components/DocumentPreview';
-
-// This should match the 'case_id' for your sample case in Supabase.
-const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9';
+import { useDocuments, Document } from '@/hooks/useDocuments';
+import { useCase } from '@/contexts/CaseContext';
 
 const DOCUMENT_TYPES = {
   MOTION: 'Motion',
@@ -17,17 +15,6 @@ const DOCUMENT_TYPES = {
   OTHER: 'Other'
 };
 
-interface Document {
-  id: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  document_type: string;
-  summary: string;
-  created_at: string;
-  file_path?: string;
-}
-
 interface UploadStatus {
   uploading: boolean;
   progress: number;
@@ -36,8 +23,15 @@ interface UploadStatus {
 }
 
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activeCase } = useCase();
+  const { 
+    documents, 
+    isLoading, 
+    error: documentsError, 
+    deleteDocument,
+    isDeleting 
+  } = useDocuments(activeCase?.id || '');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
@@ -50,32 +44,11 @@ export default function DocumentsPage() {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const supabase = createClient();
-
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
-  const fetchDocuments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('case_id', CASE_ID)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDocuments(data || []);
-    } catch (error: any) {
-      console.error('Error fetching documents:', error);
-      setError('Failed to load documents. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (documentsError) {
+      setError(documentsError.message);
+    }
+  }, [documentsError]);
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -167,8 +140,7 @@ export default function DocumentsPage() {
 
     // Refresh the document list
     if (uploadStatus.type !== 'error') {
-      await fetchDocuments();
-      
+      // The useDocuments hook will automatically refetch
       // Clear success message after a delay
       setTimeout(() => {
         setUploadStatus({
@@ -194,44 +166,27 @@ export default function DocumentsPage() {
       return;
     }
 
-    try {
-      // In a real implementation, you'd call a delete API
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', documentId);
-
-      if (error) throw error;
-
-      // Remove from local state
-      setDocuments(prev => prev.filter(d => d.id !== documentId));
-      
-      setUploadStatus({
-        uploading: false,
-        progress: 0,
-        message: `Successfully deleted "${doc.file_name}"`,
-        type: 'success'
-      });
-
-      // Clear message after delay
-      setTimeout(() => {
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: '',
-          type: 'info'
-        });
-      }, 3000);
-
-    } catch (error: any) {
-      console.error('Error deleting document:', error);
-      setUploadStatus({
-        uploading: false,
-        progress: 0,
-        message: `Failed to delete document: ${error.message}`,
-        type: 'error'
-      });
-    }
+    deleteDocument(documentId, {
+      onSuccess: () => {
+        setUploadStatus({
+          uploading: false,
+          progress: 0,
+          message: `Successfully deleted "${doc.file_name}"`,
+          type: 'success'
+        });
+        setTimeout(() => {
+          setUploadStatus({ uploading: false, progress: 0, message: '', type: 'info' });
+        }, 3000);
+      },
+      onError: (error) => {
+        setUploadStatus({
+          uploading: false,
+          progress: 0,
+          message: `Failed to delete document: ${error.message}`,
+          type: 'error'
+        });
+      }
+    });
   };
 
   const handleDocumentDownload = async (doc: Document) => {

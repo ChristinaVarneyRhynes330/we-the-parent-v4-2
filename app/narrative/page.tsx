@@ -1,165 +1,105 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { FileText, RefreshCw, Download, Copy, Check } from 'lucide-react';
-
-const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9';
+import React, { useState } from 'react';
+import { useCase } from '@/contexts/CaseContext';
+import { useNarrative, NarrativeEntry } from '@/hooks/useNarrative';
+import { Plus, Edit, Trash2, FileText } from 'lucide-react';
 
 export default function NarrativePage() {
-  const [narrative, setNarrative] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { activeCase } = useCase();
+  const { 
+    entries, 
+    isLoading, 
+    error, 
+    createEntry, 
+    updateEntry, 
+    deleteEntry 
+  } = useNarrative(activeCase?.id || '');
 
-  const generateNarrative = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/narrative/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ case_id: CASE_ID })
-      });
+  const [newEntryContent, setNewEntryContent] = useState('');
+  const [editingEntry, setEditingEntry] = useState<NarrativeEntry | null>(null);
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        setNarrative(data.narrative);
-      } else {
-        throw new Error(data.error || 'Failed to generate narrative');
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleAddEntry = () => {
+    if (!newEntryContent.trim() || !activeCase) return;
+    createEntry({ case_id: activeCase.id, content: newEntryContent });
+    setNewEntryContent('');
   };
 
-  const handleCopy = async () => {
-    if (!narrative) return;
-    
-    try {
-      await navigator.clipboard.writeText(narrative);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
+  const handleUpdateEntry = () => {
+    if (!editingEntry || !editingEntry.content.trim()) return;
+    updateEntry({ id: editingEntry.id, content: editingEntry.content });
+    setEditingEntry(null);
   };
 
-  const handleDownload = () => {
-    if (!narrative) return;
-    
-    const blob = new Blob([narrative], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `case_narrative_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDeleteEntry = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      deleteEntry(id);
+    }
   };
 
   return (
     <div className="min-h-screen bg-warm-ivory p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-header text-charcoal-navy">Case Narrative Generator</h1>
-          <p className="text-slate-gray mt-2">Generate a compelling narrative from your case timeline events</p>
+          <h1 className="text-4xl font-header text-charcoal-navy">Case Narrative</h1>
+          <p className="text-slate-gray mt-2">Build and manage the chronological story of your case.</p>
         </div>
 
-        {/* Controls */}
         <div className="card mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="section-subheader mb-2">Generate Your Story</h2>
-              <p className="text-slate-gray text-sm">
-                This tool will analyze your case timeline and create a professional narrative 
-                highlighting your progress and compliance with court orders.
-              </p>
-            </div>
-            <button
-              onClick={generateNarrative}
-              disabled={loading}
-              className="button-primary flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-5 h-5" />
-                  Generate Narrative
-                </>
-              )}
-            </button>
-          </div>
+          <h2 className="section-subheader mb-4">Add New Narrative Entry</h2>
+          <textarea
+            value={newEntryContent}
+            onChange={(e) => setNewEntryContent(e.target.value)}
+            placeholder="Enter a new narrative point..."
+            className="form-input w-full mb-4"
+            rows={3}
+          />
+          <button onClick={handleAddEntry} className="button-primary flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            Add Entry
+          </button>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="bg-garnet/10 border border-garnet/20 rounded-lg p-4 mb-6">
-            <p className="text-garnet">{error}</p>
-          </div>
-        )}
+        {isLoading && <p>Loading entries...</p>}
+        {error && <p className="text-red-500">Error: {error.message}</p>}
 
-        {/* Generated Narrative */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="section-subheader">Your Case Narrative</h2>
-            {narrative && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-2 px-3 py-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg transition-colors"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-2 px-3 py-2 text-olive-emerald hover:bg-olive-emerald/10 rounded-lg transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </button>
+        <div className="space-y-4">
+          {entries.length > 0 ? (
+            entries.map(entry => (
+              <div key={entry.id} className="card">
+                {editingEntry?.id === entry.id ? (
+                  <div>
+                    <textarea
+                      value={editingEntry.content}
+                      onChange={(e) => setEditingEntry({ ...editingEntry, content: e.target.value })}
+                      className="form-input w-full mb-4"
+                      rows={4}
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={handleUpdateEntry} className="button-primary">Save</button>
+                      <button onClick={() => setEditingEntry(null)} className="button-secondary">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-start">
+                    <p className="text-slate-gray whitespace-pre-wrap">{entry.content}</p>
+                    <div className="flex gap-2 flex-shrink-0 ml-4">
+                      <button onClick={() => setEditingEntry(entry)} className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg">
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button onClick={() => handleDeleteEntry(entry.id)} className="p-2 text-garnet hover:bg-garnet/10 rounded-lg">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          {narrative ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 max-h-96 overflow-y-auto">
-              <div className="prose prose-gray max-w-none">
-                <div className="whitespace-pre-wrap leading-relaxed">
-                  {narrative}
-                </div>
-              </div>
-            </div>
+            ))
           ) : (
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">No narrative generated yet</p>
-              <p className="text-sm text-gray-400">
-                Click "Generate Narrative" to create your case story based on timeline events
-              </p>
-            </div>
-          )}
-
-          {/* Usage Tips */}
-          {narrative && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="font-semibold text-charcoal-navy mb-3">Usage Tips</h3>
-              <ul className="text-sm text-slate-gray space-y-2">
-                <li>• Review the narrative for accuracy and completeness</li>
-                <li>• Use this as a foundation for court documents and statements</li>
-                <li>• Highlight your progress and commitment to your children</li>
-                <li>• Consider adding specific dates and achievements</li>
-              </ul>
+            <div className="card text-center py-12">
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No narrative entries yet.</p>
+              <p className="text-sm text-gray-400 mt-1">Add your first entry to begin building your case narrative.</p>
             </div>
           )}
         </div>
