@@ -9,6 +9,14 @@
     "react-hooks/exhaustive-deps": "warn",
     "prefer-const": "warn"
   },
+  "overrides": [
+    {
+      "files": ["jest.config.js"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2021,

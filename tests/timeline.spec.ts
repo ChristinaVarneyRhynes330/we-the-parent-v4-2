@@ -2,10 +2,37 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Timeline Event Management', () => {
   test.beforeEach(async ({ page }) => {
+    // Mock the API call to get cases
+    await page.route('**/api/cases', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ cases: [{ id: '123', case_name: 'Test Case' }] }),
+      });
+    });
+
+    // Mock GET and POST requests for timeline events
+    await page.route('**/api/events', async route => {
+      if (route.request().method() === 'GET') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([]), // Start with no events
+        });
+      }
+      if (route.request().method() === 'POST') {
+        const postData = route.request().postDataJSON();
+        return route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ ...postData, id: `mock-${Date.now()}` }),
+        });
+      }
+    });
+
     // Navigate to the timeline page before each test
     await page.goto('/timeline');
-    // Mock the initial state if necessary, e.g., login status
-    // For now, we assume the user is logged in and on the correct page.
+    await expect(page.locator('#loading-screen')).toBeHidden({ timeout: 15000 });
   });
 
   test('Successfully create a new timeline event', async ({ page }) => {
@@ -18,7 +45,7 @@ test.describe('Timeline Event Management', () => {
 
     // Fill out the form
     await page.getByLabel('Event Title').fill('Filed Motion to Compel Discovery');
-    await page.getByLabel('Event Date').fill('2025-10-15');
+    await page.getByLabel('Event Date').fill('2025-10-15T09:00');
     await page.getByLabel('Event Description').fill('Filed the motion with the clerk of courts after the opposing party failed to respond.');
 
     // Click "Save Event"
@@ -35,10 +62,9 @@ test.describe('Timeline Event Management', () => {
 
   test('Edit an existing timeline event', async ({ page }) => {
     // Pre-condition: Create an event to edit
-    // This should ideally be done via an API call to speed up tests
     await page.getByRole('button', { name: 'Add New Event' }).click();
     await page.getByLabel('Event Title').fill('Initial Consultation');
-    await page.getByLabel('Event Date').fill('2025-09-01');
+    await page.getByLabel('Event Date').fill('2025-09-01T10:00');
     await page.getByRole('button', { name: 'Save Event' }).click();
     await expect(page.getByText('Event created successfully')).toBeVisible();
     
@@ -51,13 +77,13 @@ test.describe('Timeline Event Management', () => {
 
     // Update the form
     await page.getByLabel('Event Title').fill('Strategy Meeting with Counsel');
-    await page.getByLabel('Event Date').fill('2025-11-01');
+    await page.getByLabel('Event Date').fill('2025-11-01T11:00');
     await page.getByRole('button', { name: 'Save Changes' }).click();
 
     // Assertions
     await expect(page.getByText('Event updated successfully')).toBeVisible();
     await expect(page.getByText('Strategy Meeting with Counsel')).toBeVisible();
-    await expect(page.getByText('November 1, 2025')).toBeVisible();
+    await expect(page.getByText('11/1/2025')).toBeVisible();
     
     const newCountText = await page.locator('data-testid=total-events-stat').textContent();
     const newCount = newCountText ? parseInt(newCountText.match(/\d+/)?.[0] || '0') : 0;
@@ -68,7 +94,7 @@ test.describe('Timeline Event Management', () => {
     // Pre-condition: Create an event to delete
     await page.getByRole('button', { name: 'Add New Event' }).click();
     await page.getByLabel('Event Title').fill('Mediation Session');
-    await page.getByLabel('Event Date').fill('2025-10-20');
+    await page.getByLabel('Event Date').fill('2025-10-20T14:00');
     await page.getByRole('button', { name: 'Save Event' }).click();
     await expect(page.getByText('Event created successfully')).toBeVisible();
 
@@ -90,7 +116,7 @@ test.describe('Timeline Event Management', () => {
   });
 
   const validationTestCases = [
-    { title: '', date: '2025-12-10', errorMessage: 'Event Title is a required field' },
+    { title: '', date: '2025-12-10T09:00', errorMessage: 'Event Title is a required field' },
     { title: 'Phone call with witness', date: '', errorMessage: 'Event Date is a required field' },
     { title: '', date: '', errorMessage: 'Event Title and Date are required' },
   ];

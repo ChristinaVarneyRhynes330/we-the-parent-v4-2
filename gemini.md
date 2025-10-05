@@ -7,55 +7,63 @@ Build a zero-cost, AI-powered legal assistant for a pro se parent in a Florida j
 ## 2. 📜 AI Agent Constitution (Unbreakable Rules)
 - **Analyze First, Code Second:** Always cite the files you are reviewing before generating any code.
 - **Strict Adherence to Blueprint:** Every feature must follow the `API -> Hook -> UI -> Test` pipeline.
-- **Sequential Execution:** You must complete the tasks in the checklist (Section 6) in their exact numerical order.
+- **Sequential Execution:** You must complete the tasks in the checklist (Section 7) in their exact numerical order.
 - **Approval Required:** Propose any major architectural changes not listed here and wait for my approval before implementing.
 - **Safety & Verification:** Always show a diff before writing to a file. Ensure all code passes TypeScript checks and that its corresponding test is green before considering a task complete.
 
-## 3. 🏛️ Architectural Blueprint
+## 3. workflow Director's Playbook: Prompting Workflow
+There are two methods for prompting the agent. You must use the correct one for the task at hand.
+
+- **1. The Iterative Playbook (Primary Method):** For all feature development and bug fixing (any task in the checklist), you **must** use the three-step `Develop -> Verify -> Debug` loop detailed in the separate **Prompt Playbook** document. This is the required workflow to ensure quality and correctness.
+- **2. The Prompt Quick Reference (Secondary Method):** The quick reference prompts in Section 9 are for simple, one-off queries or emergency fixes only. They are not a substitute for the full iterative workflow.
+
+## 4. 🏛️ Architectural Blueprint
 1.  **Pipeline Rule:** `API -> Hook -> UI -> Test`. This is the required pattern for all feature development.
 2.  **Iterative Loop:** The workflow for every task is **`Develop -> Verify -> Debug`**. A task is only complete when its test passes.
 3.  **Proactive Intelligence:** New information (document uploads, user chat input) must automatically trigger AI analysis to update the Timeline, Narrative, and other relevant features.
 
-## 4. ✅ Project Task Checklist
-*(To be executed in strict sequential order)*
+## 5. 🔐 Environment Variables
+* `NEXT_PUBLIC_SUPABASE_URL`
+* `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+* `SUPABASE_SERVICE_ROLE_KEY`
+* `OPENAI_API_KEY`
+* `GROQ_API_KEY`
+* `GOOGLE_API_KEY`
+* `PLAYWRIGHT_TEST_BASE_URL` (optional)
+
+## 6. 🏗️ Tech Stack
+* **Framework:** Next.js (App Router) with React & TypeScript
+* **Styling:** Tailwind CSS
+* **Backend:** Supabase (Postgres, Auth, Storage, Edge Functions, pgvector)
+* **Testing:** Playwright for E2E testing.
+
+## 7. ✅ Project Task Checklist
+*(To be executed in strict sequential order using the Iterative Playbook)*
 
 ### **Phase 1: Foundation Repair (Highest Priority)**
 * [ ] **Task 1.1: Database Migrations**
-    * **Description:** Create and apply a single SQL migration to ensure all required tables exist in the Supabase database.
 * [ ] **Task 1.2: Environment Configuration**
-    * **Description:** Generate a `.env.local.example` file for the user to configure.
 * [ ] **Task 1.3: Remove Hardcoded `CASE_ID`**
-    * **Description:** Refactor all files to remove the hardcoded `CASE_ID` constant and replace it with the dynamic `useCase()` context.
 * [ ] **Task 1.4: Fix API and Pass All Tests**
-    * **Description:** Repair the `/api/events` route, which is the root cause of all 6 failing Playwright tests, and ensure all existing tests pass.
 
 ### **Phase 2: In-Progress Feature Completion**
 * [ ] **Task 2.1: Finalize Narrative Builder**
-    * **Description:** Complete the `useNarrative.ts` hook and fully integrate it into the `app/narrative/page.tsx` UI.
 * [ ] **Task 2.2: Finalize Document Drafting**
-    * **Description:** Complete the `useDrafts.ts` hook and wire it into the `app/draft/page.tsx` UI.
 * [ ] **Task 2.3: Finalize Compliance Tracking**
-    * **Description:** Implement the `useCompliance.ts` hook and integrate it with the backend.
 
 ### **Phase 3: Strategic Feature Implementation**
 * [ ] **Task 3.1: Implement Proactive Intelligence Layer**
-    * **Description:** Create the Supabase Edge Function and AI task that automatically analyzes new documents and populates the Timeline.
 * [ ] **Task 3.2: Enhance Calendar View**
-    * **Description:** Upgrade the calendar with `react-big-calendar` and color-coded events.
 * [ ] **Task 3.3: Build the Pre-Hearing "Prep Room"**
-    * **Description:** Create the `app/prep-room/[hearingId]/page.tsx` UI for mock hearings and objection practice.
 
 ### **Phase 4: Courtroom Readiness & Launch**
 * [ ] **Task 4.1: Implement Live Courtroom Helper (De-risked Milestones)**
-    * **Description:** Build the real-time hearing assistant in three distinct, verifiable stages.
-    * [ ] **Milestone 4.1.1 (Audio Upload & Transcription):** Build a non-real-time feature. Create a page where a user can upload a pre-recorded audio file and have it transcribed by an AI task (`transcribeAudioFile`). This validates the core transcription pipeline first.
-    * [ ] **Milestone 4.1.2 (Live Client-Side Transcription):** Build the real-time UI. Create the `app/courtroom-helper/page.tsx` and `components/RealTimeTranscriber.tsx`. Implement live audio capture and display the text on screen using the browser's `SpeechRecognition` API. At this stage, there is NO AI analysis. This validates the audio stream.
-    * [ ] **Milestone 4.1.3 (Real-Time AI Analysis Integration):** Connect the live transcript to the AI. Implement the `liveCourtroomAnalysis` function with the multi-task prompt. Modify the transcriber to send text chunks on a debounce to the AI and display the structured JSON results in the UI panels.
+    * [ ] **Milestone 4.1.1 (Audio Upload & Transcription):** Build a non-real-time feature to transcribe pre-recorded audio files.
+    * [ ] **Milestone 4.1.2 (Live Client-Side Transcription):** Build the real-time UI to capture and display a live transcript without AI analysis.
+    * [ ] **Milestone 4.1.3 (Real-Time AI Analysis Integration):** Connect the live transcript to the AI for in-the-moment suggestions.
 * [ ] **Task 4.2: Final Testing & UAT**
-    * **Description:** Conduct a final accessibility and performance audit, and then generate the User Acceptance Testing (UAT) plan.
 
-## 5. 📝 Prompt Quick Reference
-* **Foundation Fixes:**
-    * `@workspace Analyze all .sql files. Generate a single SQL migration that creates all required tables if they do not exist. Show the full SQL.`
-    * `@workspace List all required environment variables for this project and generate a .env.local.example file with comments.`
-    * `@workspace The Playwright tests are failing. Diagnose the root cause of the failure in /api/events and fix the route. Rerun the tests until all 6 pass.`
+## 8. 📝 Prompt Quick Reference (For Simple Queries Only)
+* `@workspace Analyze all .sql files. Generate a single SQL migration that creates all required tables if they do not exist.`
+* `@workspace List all required environment variables and generate a .env.local.example file.`
+* `@workspace The Playwright tests are failing. Diagnose the root cause in /api/events and fix the route.`

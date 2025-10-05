@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - generic [ref=e2]:
     - generic [ref=e4]:
       - heading "We The Parent™" [level=1] [ref=e8]
@@ -61,18 +61,22 @@
           - img [ref=e61] [cursor=pointer]
           - text: Compliance Check
     - main [ref=e64]:
-      - generic [ref=e66]: "Error loading timeline: Failed to fetch events"
-  - generic [ref=e68]: xl
-  - generic [ref=e73] [cursor=pointer]:
-    - button "Open Next.js Dev Tools" [ref=e74] [cursor=pointer]:
-      - img [ref=e75] [cursor=pointer]
-    - generic [ref=e78] [cursor=pointer]:
-      - button "Open issues overlay" [ref=e79] [cursor=pointer]:
-        - generic [ref=e80] [cursor=pointer]:
-          - generic [ref=e81] [cursor=pointer]: "0"
-          - generic [ref=e82] [cursor=pointer]: "1"
-        - generic [ref=e83] [cursor=pointer]: Issue
-      - button "Collapse issues badge" [ref=e84] [cursor=pointer]:
-        - img [ref=e85] [cursor=pointer]
-  - alert [ref=e87]
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - heading "Case Narrative" [level=1] [ref=e69]
+          - paragraph [ref=e70]: Build and manage the chronological story of your case.
+        - generic [ref=e71]:
+          - heading "Add New Narrative Entry" [level=2] [ref=e72]
+          - textbox "Enter a new narrative point..." [ref=e73]: This entry will be deleted.
+          - button "Add Entry" [active] [ref=e74] [cursor=pointer]:
+            - img [ref=e75] [cursor=pointer]
+            - text: Add Entry
+        - generic [ref=e77]:
+          - img [ref=e78]
+          - paragraph [ref=e81]: No narrative entries yet.
+          - paragraph [ref=e82]: Add your first entry to begin building your case narrative.
+  - generic [ref=e84]: xl
+  - button "Open Next.js Dev Tools" [ref=e90] [cursor=pointer]:
+    - img [ref=e91] [cursor=pointer]
+  - alert [ref=e94]
 ```

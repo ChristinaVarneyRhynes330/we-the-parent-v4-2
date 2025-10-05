@@ -84,10 +84,10 @@ export default function NarrativePage() {
                   <div className="flex justify-between items-start">
                     <p className="text-slate-gray whitespace-pre-wrap">{entry.content}</p>
                     <div className="flex gap-2 flex-shrink-0 ml-4">
-                      <button onClick={() => setEditingEntry(entry)} className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg">
+                      <button onClick={() => setEditingEntry(entry)} className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg" aria-label="Edit entry" data-testid="edit-entry-button">
                         <Edit className="w-5 h-5" />
                       </button>
-                      <button onClick={() => handleDeleteEntry(entry.id)} className="p-2 text-garnet hover:bg-garnet/10 rounded-lg">
+                      <button onClick={() => handleDeleteEntry(entry.id)} className="p-2 text-garnet hover:bg-garnet/10 rounded-lg" aria-label="Delete entry" data-testid="delete-entry-button">
                         <Trash2 className="w-5 h-5" />
                       </button>
                     </div>

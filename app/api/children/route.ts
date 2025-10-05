@@ -1,16 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 
-const CASE_ID = 'bf45b3cd-652c-43db-b535-38ab89877ff9'; // Hardcoded for now
-
 // GET handler to fetch all children for the case
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const case_id = searchParams.get('case_id');
+
+    if (!case_id) {
+      return NextResponse.json({ error: 'case_id is required' }, { status: 400 });
+    }
+
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('children')
       .select('*')
-      .eq('case_id', CASE_ID)
+      .eq('case_id', case_id)
       .order('date_of_birth', { ascending: true });
 
     if (error) throw error;
@@ -25,11 +30,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, date_of_birth, ...otherFields } = body;
+    const { name, date_of_birth, case_id, ...otherFields } = body;
 
-    if (!name || !date_of_birth) {
+    if (!name || !date_of_birth || !case_id) {
       return NextResponse.json({ 
-        error: 'Missing required fields: name and date_of_birth' 
+        error: 'Missing required fields: name, date_of_birth, and case_id' 
       }, { status: 400 });
     }
 
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('children')
       .insert({
-        case_id: CASE_ID,
+        case_id,
         name,
         date_of_birth,
         ...otherFields,

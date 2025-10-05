@@ -6,6 +6,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('[/api/events/[id]] DELETE request received');
   try {
     const supabase = createServiceClient();
     const { id } = params;
@@ -29,7 +30,7 @@ export async function DELETE(
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Delete Event API Error:', error);
+    console.error('[/api/events/[id]] DELETE error:', error);
     return NextResponse.json({ 
       error: error.message || 'Failed to delete event' 
     }, { status: 500 });
@@ -41,6 +42,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('[/api/events/[id]] PUT request received');
   try {
     const supabase = createServiceClient();
     const { id } = params;
@@ -85,7 +87,7 @@ export async function PUT(
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Update Event API Error:', error);
+    console.error('[/api/events/[id]] PUT error:', error);
     return NextResponse.json({ 
       error: error.message || 'Failed to update event' 
     }, { status: 500 });
@@ -97,6 +99,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('[/api/events/[id]] GET request received');
   try {
     const supabase = createServiceClient();
     const { id } = params;
@@ -125,7 +128,7 @@ export async function GET(
     return NextResponse.json({ event: data });
 
   } catch (error: any) {
-    console.error('Get Event API Error:', error);
+    console.error('[/api/events/[id]] GET error:', error);
     return NextResponse.json({ 
       error: error.message || 'Failed to fetch event' 
     }, { status: 500 });

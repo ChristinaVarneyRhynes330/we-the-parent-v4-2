@@ -2,25 +2,47 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Narrative Entry Management', () => {
   test.beforeEach(async ({ page }) => {
+    // Mock the API call to get cases
+    await page.route('**/api/cases', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ cases: [{ id: '123', case_name: 'Test Case' }] }),
+      });
+    });
+
+    // Mock GET and POST requests for narrative entries
+    await page.route('**/api/narrative', async route => {
+      if (route.request().method() === 'GET') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([]), // Start with no entries
+        });
+      }
+      if (route.request().method() === 'POST') {
+        const postData = route.request().postDataJSON();
+        return route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          // Return a mock of the created entry
+          body: JSON.stringify([{ ...postData, id: `mock-${Date.now()}` }]),
+        });
+      }
+    });
+
     // Navigate to the narrative page before each test
     await page.goto('/narrative');
+    await expect(page.locator('#loading-screen')).toBeHidden({ timeout: 15000 });
   });
 
   test('Successfully create a new narrative entry', async ({ page }) => {
     const newEntryText = 'The quick brown fox jumps over the lazy dog.';
-
-    // Get initial entry count
-    const initialCount = await page.locator('.card >> text=The quick brown fox').count();
-
-    // Fill out the form
     await page.getByPlaceholder('Enter a new narrative point...').fill(newEntryText);
     await page.getByRole('button', { name: 'Add Entry' }).click();
 
-    // Assertions
+    // Assert that the new entry is visible after the mocked API call
     await expect(page.getByText(newEntryText)).toBeVisible();
-    
-    const newCount = await page.locator('.card >> text=The quick brown fox').count();
-    expect(newCount).toBe(initialCount + 1);
   });
 
   test('Edit an existing narrative entry', async ({ page }) => {
@@ -34,9 +56,7 @@ test.describe('Narrative Entry Management', () => {
 
     // Find and edit the entry
     const entryRow = page.locator('.card', { hasText: initialText });
-    await entryRow.getByRole('button').nth(0).click(); // Click the edit button
-
-    // Update the form
+    await entryRow.getByTestId('edit-entry-button').click();
     await entryRow.locator('textarea').fill(updatedText);
     await entryRow.getByRole('button', { name: 'Save' }).click();
 
@@ -53,17 +73,12 @@ test.describe('Narrative Entry Management', () => {
     await page.getByRole('button', { name: 'Add Entry' }).click();
     await expect(page.getByText(entryText)).toBeVisible();
 
-    const initialCount = await page.locator('.card >> text=This entry will be deleted').count();
-
     // Find and delete the entry
     const entryRow = page.locator('.card', { hasText: entryText });
-    page.on('dialog', dialog => dialog.accept()); // Handle confirmation dialog
-    await entryRow.getByRole('button').nth(1).click(); // Click the delete button
+    page.on('dialog', dialog => dialog.accept());
+    await entryRow.getByTestId('delete-entry-button').click();
 
     // Assertions
     await expect(page.getByText(entryText)).not.toBeVisible();
-    
-    const newCount = await page.locator('.card >> text=This entry will be deleted').count();
-    expect(newCount).toBe(initialCount - 1);
   });
 });

@@ -17,8 +17,8 @@ export type NewTimelineEvent = Omit<TimelineEvent, 'id'>;
 
 const API_BASE_URL = '/api/events';
 
-const fetchEvents = async (): Promise<TimelineEvent[]> => {
-  const response = await fetch(API_BASE_URL);
+const fetchEvents = async (caseId: string): Promise<TimelineEvent[]> => {
+  const response = await fetch(`${API_BASE_URL}?case_id=${caseId}`);
   if (!response.ok) throw new Error('Failed to fetch events');
   const data = await response.json();
   return data.events; // Assuming the API returns { events: [...] }
@@ -56,13 +56,14 @@ const deleteEvent = async (eventId: string): Promise<void> => {
  * Custom hook to manage all data and operations for the timeline feature.
  * It encapsulates TanStack Query logic for fetching, creating, updating, and deleting events.
  */
-export function useTimeline() {
+export function useTimeline(caseId: string) {
   const queryClient = useQueryClient();
 
   // Query to fetch all events
   const { data: events, isLoading, error } = useQuery<TimelineEvent[]>({ 
-    queryKey: ['events'], 
-    queryFn: fetchEvents 
+    queryKey: ['events', caseId], 
+    queryFn: () => fetchEvents(caseId),
+    enabled: !!caseId, // Only run the query if caseId is available
   });
 
   // Mutation to add a new event
