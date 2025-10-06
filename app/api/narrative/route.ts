@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // GET all narrative entries for a case
 export async function GET(req: NextRequest) {
   console.log('[/api/narrative] GET request received');
   try {
-    const supabase = createClient();
+    const supabase = await createSSRClient();
     const { searchParams } = new URL(req.url);
     const caseId = searchParams.get('case_id');
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   console.log('[/api/narrative] POST request received');
   try {
-    const supabase = createClient();
+    const supabase = await createSSRClient();
     const { case_id, content } = await req.json();
 
     if (!case_id || !content) {

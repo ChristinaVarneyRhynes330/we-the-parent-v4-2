@@ -30,8 +30,7 @@ export default function DocumentsPage() {
     documents,
     isLoading,
     error: documentsError,
-    deleteDocument,
-    isDeleting
+    deleteDocument
   } = useDocuments(activeCase?.id || '');
 
   const [searchTerm, setSearchTerm] = useState('');

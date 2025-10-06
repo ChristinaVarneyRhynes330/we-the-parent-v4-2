@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { pipeline } from '@xenova/transformers';
 import { OpenAI } from 'openai';
 
@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   const { query, caseId } = await req.json();
-  const supabase = createClient();
+  const supabase = await createSSRClient();
 
   if (!query || !caseId) {
     return NextResponse.json({ error: 'Query and caseId are required.' }, { status: 400 });

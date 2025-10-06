@@ -23,8 +23,6 @@ const DocumentsList: React.FC<DocumentsListProps> = ({
   onDocumentClick,
   onDocumentDelete
 }) => {
-  const [loading, setLoading] = useState(false);
-
   const handleDocumentClick = (doc: Document) => {
     if (onDocumentClick) {
       onDocumentClick(doc);
@@ -36,16 +34,6 @@ const DocumentsList: React.FC<DocumentsListProps> = ({
       onDocumentDelete(docId);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-20 bg-gray-200 rounded"></div>
-        <div className="h-20 bg-gray-200 rounded"></div>
-        <div className="h-20 bg-gray-200 rounded"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

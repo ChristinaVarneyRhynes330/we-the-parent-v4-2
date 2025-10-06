@@ -15,8 +15,6 @@ import {
   Upload,
   AlertTriangle,
   CheckCircle,
-  Settings,
-  LogOut,
   PlusCircle
 } from 'lucide-react';
 import { useCase } from '@/contexts/CaseContext'; // Import the hook

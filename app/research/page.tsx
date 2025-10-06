@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Book, Scale, FileText, ExternalLink } from 'lucide-react';
+import { Search, ExternalLink } from 'lucide-react';
 
 interface SearchResult {
   title: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Scissors, Save, FileText, Clock } from 'lucide-react';
+import { Scissors, Clock } from 'lucide-react';
 
 // Mock data representing a transcript with word-level timestamps
 const mockTranscript = {
@@ -74,8 +74,8 @@ export default function TranscriptionEditorPage() {
     const range = selection.getRangeAt(0);
     const selectedText = selection.toString();
 
-    let startEl = range.startContainer.parentElement?.closest('span[data-start]');
-    let endEl = range.endContainer.parentElement?.closest('span[data-end]');
+    const startEl = range.startContainer.parentElement?.closest('span[data-start]');
+    const endEl = range.endContainer.parentElement?.closest('span[data-end]');
 
     if (startEl && endEl) {
       const startTime = parseFloat(startEl.getAttribute('data-start') || '0');
@@ -147,7 +147,7 @@ export default function TranscriptionEditorPage() {
             <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[100px]">
               {selectionDetails.text ? (
                 <div>
-                  <p className="text-sm text-slate-gray italic">"...{selectionDetails.text}..."</p>
+                  <p className="text-sm text-slate-gray italic">&quot;...{selectionDetails.text}...&quot;</p>
                   <p className="text-xs font-mono text-charcoal-navy mt-2">
                     Time: {formatTime(selectionDetails.startTime!)} - {formatTime(selectionDetails.endTime!)}
                   </p>
@@ -174,7 +174,7 @@ export default function TranscriptionEditorPage() {
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                 {savedExcerpts.length > 0 ? savedExcerpts.map(excerpt => (
                   <div key={excerpt.id} className="bg-white border rounded-lg p-3">
-                    <p className="text-sm text-charcoal-navy italic">"...{excerpt.text}..."</p>
+                    <p className="text-sm text-charcoal-navy italic">&quot;...{excerpt.text}...&quot;</p>
                     <div className="flex items-center gap-2 text-xs font-mono text-slate-gray mt-2">
                       <Clock className="w-3 h-3" />
                       <span>{formatTime(excerpt.startTime!)} - {formatTime(excerpt.endTime!)}</span>

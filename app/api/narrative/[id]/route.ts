@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // PATCH an existing narrative entry
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   console.log('[/api/narrative/[id]] PATCH request received');
   try {
-    const supabase = createClient();
+    const supabase = await createSSRClient();
     const { id } = params;
     const { content } = await req.json();
 
@@ -35,7 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   console.log('[/api/narrative/[id]] DELETE request received');
   try {
-    const supabase = createClient();
+    const supabase = await createSSRClient();
     const { id } = params;
 
     const { error } = await supabase.from('narrative_entries').delete().eq('id', id);

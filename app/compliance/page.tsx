@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle, AlertTriangle, FileText } from 'lucide-react';
+import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function CompliancePage() {
   const [documentType, setDocumentType] = useState('Motion');

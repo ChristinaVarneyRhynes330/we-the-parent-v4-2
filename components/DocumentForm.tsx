@@ -309,7 +309,7 @@ export default function DocumentForm() {
               <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 mb-2">Generated document will appear here</p>
-                <p className="text-sm text-gray-400">Fill out the form and click "Generate Document" to get started</p>
+                <p className="text-sm text-gray-400">Fill out the form and click &quot;Generate Document&quot; to get started</p>
               </div>
             )}
           </div>

@@ -112,7 +112,16 @@
           - paragraph [ref=e115]: No events on the timeline yet.
           - paragraph [ref=e116]: Click "Add New Event" to get started.
   - generic [ref=e118]: xl
-  - button "Open Next.js Dev Tools" [ref=e124] [cursor=pointer]:
-    - img [ref=e125] [cursor=pointer]
-  - alert [ref=e128]
+  - generic [ref=e123] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e124] [cursor=pointer]:
+      - img [ref=e125] [cursor=pointer]
+    - generic [ref=e128] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e129] [cursor=pointer]:
+        - generic [ref=e130] [cursor=pointer]:
+          - generic [ref=e131] [cursor=pointer]: "0"
+          - generic [ref=e132] [cursor=pointer]: "1"
+        - generic [ref=e133] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e134] [cursor=pointer]:
+        - img [ref=e135] [cursor=pointer]
+  - alert [ref=e137]
 ```

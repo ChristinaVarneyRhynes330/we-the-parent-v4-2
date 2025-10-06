@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createSSRClient();
   const { searchParams } = new URL(req.url);
   const case_id = searchParams.get('case_id');
 

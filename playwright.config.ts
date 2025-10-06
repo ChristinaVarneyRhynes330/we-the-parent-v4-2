@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
 
 const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
 

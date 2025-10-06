@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { OpenAI } from 'openai';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -12,7 +12,7 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   const { templateId, caseId, userInstructions } = await req.json();
-  const supabase = createClient();
+  const supabase = await createSSRClient();
 
   if (!templateId || !caseId) {
     return NextResponse.json({ error: 'templateId and caseId are required.' }, { status: 400 });

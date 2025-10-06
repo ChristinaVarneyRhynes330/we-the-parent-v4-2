@@ -156,7 +156,7 @@ export default function ChildrenPage() {
             <div className="card text-center py-12">
               <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No children have been added yet.</p>
-              <p className="text-sm text-gray-400 mt-1">Click "Add Child" to get started.</p>
+              <p className="text-sm text-gray-400 mt-1">Click &quot;Add Child&quot; to get started.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

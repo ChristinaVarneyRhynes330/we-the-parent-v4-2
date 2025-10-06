@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Clock, MapPin, FileText, AlertTriangle, Scale, Users } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Calendar, MapPin, FileText, AlertTriangle, Scale, Users } from 'lucide-react';
 import { NewTimelineEvent } from '@/hooks/useTimeline';
 
 interface EventFormProps {
@@ -18,45 +18,6 @@ const EVENT_TYPES = [
   { value: 'Other', label: 'Other Event', icon: Calendar, color: 'slate-gray' },
 ];
 
-const COMMON_EVENTS = [
-    {
-    title: 'Adjudicatory Hearing',
-    type: 'Hearing',
-    description: 'Court hearing to determine if the allegations in the petition are true',
-    location: '5th Judicial Circuit Court'
-  },
-  {
-    title: 'Disposition Hearing',
-    type: 'Hearing',
-    description: 'Court hearing to decide what happens with the child',
-    location: '5th Judicial Circuit Court'
-  },
-  {
-    title: 'Judicial Review Hearing',
-    type: 'Hearing',
-    description: 'Regular review of case progress and compliance',
-    location: '5th Judicial Circuit Court'
-  },
-  {
-    title: 'Supervised Visitation',
-    type: 'Appointment',
-    description: 'Scheduled visit with children under supervision',
-    location: 'Family Visitation Center'
-  },
-  {
-    title: 'Case Plan Review',
-    type: 'Appointment',
-    description: 'Meeting to review progress on case plan requirements',
-    location: 'DCF Office'
-  },
-  {
-    title: 'Parenting Class',
-    type: 'Appointment',
-    description: 'Required parenting education session',
-    location: 'Community Center'
-  },
-];
-
 export default function EventForm({ event: editingEvent, onSubmit, onClose }: EventFormProps) {
   const [formData, setFormData] = useState<NewTimelineEvent>({
     title: editingEvent?.title || '',
@@ -69,24 +30,12 @@ export default function EventForm({ event: editingEvent, onSubmit, onClose }: Ev
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleQuickAdd = (template: any) => {
-    setFormData(prev => ({
-      ...prev,
-      title: template.title,
-      event_type: template.type,
-      description: template.description,
-      location: template.location,
-    }));
-    setShowQuickAdd(false);
   };
 
   const validateForm = (): string | null => {
@@ -107,21 +56,6 @@ export default function EventForm({ event: editingEvent, onSubmit, onClose }: Ev
     onSubmit(formData);
     setIsSubmitting(false);
   };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      event_type: 'Appointment',
-      date: '',
-      description: '',
-      location: '',
-      notes: '',
-    });
-    setError(null);
-    setShowQuickAdd(false);
-  };
-
-  const selectedEventType = EVENT_TYPES.find(type => type.value === formData.event_type);
 
   return (
     <div 

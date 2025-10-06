@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { aiTaskService, AiTask } from '@/lib/ai/analysis';
+// import { aiTaskService, AiTask } from '@/lib/ai/analysis';
 
 /**
  * This is the single, consolidated API route for all AI-powered tasks.
@@ -7,6 +7,9 @@ import { aiTaskService, AiTask } from '@/lib/ai/analysis';
  * it to the correct service function in `lib/ai/analysis.ts`.
  */
 export async function POST(request: Request) {
+  // TODO: This route is disabled until the AI tasks are implemented in @/lib/ai/analysis.ts
+  return NextResponse.json({ error: 'This feature is not yet implemented.' }, { status: 501 });
+  /*
   try {
     const body = await request.json();
     const { task, payload } = body;
@@ -45,4 +48,5 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+  */
 }

@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createSSRClient();
   const { id } = params;
   const { updates } = await req.json();
 
@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createSSRClient();
   const { id } = params;
 
   const { error } = await supabase.from('documents').delete().eq('id', id);

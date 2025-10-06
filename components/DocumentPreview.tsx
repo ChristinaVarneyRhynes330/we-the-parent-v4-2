@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Download, FileText, Eye, EyeOff, Maximize2, Minimize2, AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
@@ -26,13 +26,13 @@ export default function DocumentPreview({ isOpen, onClose, document }: DocumentP
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && document) {
-      fetchDocumentContent();
-    }
-  }, [isOpen, document]);
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  };
 
-  const fetchDocumentContent = async () => {
+  const fetchDocumentContent = useCallback(async () => {
     if (!document) return;
     
     setLoading(true);
@@ -53,13 +53,13 @@ export default function DocumentPreview({ isOpen, onClose, document }: DocumentP
     } finally {
       setLoading(false);
     }
-  };
+  }, [document]);
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-  };
+  useEffect(() => {
+    if (isOpen && document) {
+      fetchDocumentContent();
+    }
+  }, [isOpen, document, fetchDocumentContent]);
 
   const handleDownload = async () => {
     if (!document) return;

@@ -1,18 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
 import { pipeline } from '@xenova/transformers';
 
 export const runtime = 'edge';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
-  const supabase = createClient();
+  const supabase = await createSSRClient();
 
   const lastMessage = messages[messages.length - 1];
   const userQuery = lastMessage.content;
@@ -52,18 +48,15 @@ Question: ${userQuery}`;
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      stream: true,
+    const result = await streamText({
+      model: openai('gpt-4o'),
       messages: newMessages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),
     });
 
-    const stream = OpenAIStream(response);
-
-    return new StreamingTextResponse(stream);
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error('Chat API Error:', error);
     return NextResponse.json(

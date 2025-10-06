@@ -1,0 +1,4 @@
+node_modules
+.next
+.pwa
+public/workbox-*.js

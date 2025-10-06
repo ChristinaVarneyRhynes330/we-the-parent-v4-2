@@ -7,7 +7,8 @@
       - heading "We The Parent™" [level=1] [ref=e8]
       - generic [ref=e10]:
         - generic [ref=e11]: Current Case
-        - combobox "Current Case" [ref=e12]
+        - combobox "Current Case" [ref=e12]:
+          - option "()" [selected]
         - button "New Case" [ref=e13] [cursor=pointer]:
           - img [ref=e14] [cursor=pointer]
           - text: New Case
@@ -67,16 +68,17 @@
           - paragraph [ref=e70]: Build and manage the chronological story of your case.
         - generic [ref=e71]:
           - heading "Add New Narrative Entry" [level=2] [ref=e72]
-          - textbox "Enter a new narrative point..." [ref=e73]: This entry will be deleted.
+          - textbox "Enter a new narrative point..." [ref=e73]
           - button "Add Entry" [active] [ref=e74] [cursor=pointer]:
             - img [ref=e75] [cursor=pointer]
             - text: Add Entry
-        - generic [ref=e77]:
-          - img [ref=e78]
-          - paragraph [ref=e81]: No narrative entries yet.
-          - paragraph [ref=e82]: Add your first entry to begin building your case narrative.
-  - generic [ref=e84]: xl
-  - button "Open Next.js Dev Tools" [ref=e90] [cursor=pointer]:
-    - img [ref=e91] [cursor=pointer]
-  - alert [ref=e94]
+        - paragraph [ref=e76]: Loading entries...
+        - generic [ref=e78]:
+          - img [ref=e79]
+          - paragraph [ref=e82]: No narrative entries yet.
+          - paragraph [ref=e83]: Add your first entry to begin building your case narrative.
+  - generic [ref=e85]: xl
+  - button "Open Next.js Dev Tools" [ref=e91] [cursor=pointer]:
+    - img [ref=e92] [cursor=pointer]
+  - alert [ref=e95]
 ```

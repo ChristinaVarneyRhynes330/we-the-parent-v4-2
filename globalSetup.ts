@@ -1,9 +1,9 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium } from '@playwright/test';
 
 // Define the path where the authentication state will be saved
 const authFile = 'playwright-auth.json';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   // Check if the auth file already exists to skip re-logging in
   // You might remove this check if your tokens expire quickly
   // try {

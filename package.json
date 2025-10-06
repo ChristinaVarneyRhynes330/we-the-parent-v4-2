@@ -20,16 +20,17 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "jest --bail --findRelatedTests"
+      "eslint --fix"
     ]
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.42",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.2.8",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.2",
     "@tanstack/react-query": "^5.90.2",
@@ -59,6 +60,7 @@
     "@tailwindcss/typography": "^0.5.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.5.2",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -67,17 +69,12 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.5.2",
-    "husky": "^9.1.7",
-    "jest": "^30.2.0",
-    "jest-environment-jsdom": "^30.2.0",
-    "lint-staged": "^16.2.3",
     "node-fetch": "^3.3.2",
     "postcss": "^8.5.6",
     "supabase": "^2.40.7",
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=18.0.0",

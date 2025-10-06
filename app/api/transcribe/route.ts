@@ -8,10 +8,9 @@ import { NextResponse } from 'next/server';
  * Google Speech-to-Text, or AWS Transcribe.
  * 
  * @param audioBuffer The audio data as a Buffer.
- * @param apiKey Your API key for the transcription service.
  * @returns A promise that resolves to the transcript string.
  */
-async function transcribeAudio(audioBuffer: Buffer, apiKey: string): Promise<string> {
+async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   console.log(`Simulating transcription call for audio buffer of size: ${audioBuffer.length} bytes.`);
 
   // --- Example for a real service (e.g., AssemblyAI) ---
@@ -62,13 +61,12 @@ export async function POST(request: Request) {
     const audioBuffer = Buffer.from(await file.arrayBuffer());
 
     // It's crucial to store API keys securely in environment variables.
-    const apiKey = process.env.TRANSCRIPTION_API_KEY;
-    if (!apiKey) {
+    if (!process.env.TRANSCRIPTION_API_KEY) {
         console.warn('TRANSCRIPTION_API_KEY environment variable not set. Using mock service.');
     }
 
     // Call the placeholder transcription function.
-    const transcript = await transcribeAudio(audioBuffer, apiKey || 'mock-api-key');
+    const transcript = await transcribeAudio(audioBuffer);
 
     return NextResponse.json({ transcript }, { status: 200 });
 

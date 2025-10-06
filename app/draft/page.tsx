@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Download, Clipboard, Book, ChevronDown } from 'lucide-react';
+import { Download, Clipboard, Book, ChevronDown } from 'lucide-react';
 import { useCase } from '@/contexts/CaseContext'; // Import the useCase hook
 
 // Mock data for document templates

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Scale, BookOpen, FileText } from 'lucide-react';
+import { Scale } from 'lucide-react';
 
 interface Precedent {
   title: string;

@@ -54,7 +54,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { case_id, title, event_date, event_type, description, location, notes } = body;
+    const { title, event_date, event_type, description, location, notes } = body;
 
     // Validate required fields
     if (!title || !event_date || !event_type) {
