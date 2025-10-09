@@ -7,7 +7,7 @@ test.describe('Document Management', () => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ cases: [{ id: '123', case_name: 'Test Case' }] }),
+        body: JSON.stringify({ cases: [{ id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', case_name: 'Test Case' }] }),
       });
     });
 
@@ -33,6 +33,10 @@ test.describe('Document Management', () => {
         });
       }
       await route.continue();
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('activeCaseId', 'a1b2c3d4-e5f6-7890-1234-567890abcdef');
     });
 
     // Navigate to the documents page before each test

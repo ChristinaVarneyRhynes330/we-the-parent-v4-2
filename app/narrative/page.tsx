@@ -14,7 +14,7 @@ export default function NarrativePage() {
     createEntry, 
     updateEntry, 
     deleteEntry 
-  } = useNarrative(activeCase?.id || '');
+  } = useNarrative(activeCase?.id);
 
   const [newEntryContent, setNewEntryContent] = useState('');
   const [editingEntry, setEditingEntry] = useState<NarrativeEntry | null>(null);

@@ -13,7 +13,7 @@
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
-  const registry = {};
+  let registry = {};
 
   // Used for `eval` and `importScripts` where we can't get script URL by other means.
   // In both cases, it's safe to use a global var because those functions are synchronous.
@@ -37,7 +37,7 @@ if (!self.define) {
         })
       
       .then(() => {
-        const promise = registry[uri];
+        let promise = registry[uri];
         if (!promise) {
           throw new Error(`Module ${uri} didn’t register its module`);
         }
@@ -52,7 +52,7 @@ if (!self.define) {
       // Module is already loading or loaded.
       return;
     }
-    const exports = {};
+    let exports = {};
     const require = depUri => singleRequire(depUri, uri);
     const specialDeps = {
       module: { uri },

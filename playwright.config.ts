@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
 
@@ -6,9 +7,6 @@ const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  // No longer using globalSetup
-  // globalSetup: require.resolve('./globalSetup'), 
-
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -19,8 +17,6 @@ export default defineConfig({
   use: {
     baseURL: baseURL,
     trace: 'on-first-retry',
-    // We no longer need a saved storage state since we are not logging in
-    // storageState: 'playwright/.auth/user.json', 
   },
 
   projects: [
@@ -34,6 +30,7 @@ export default defineConfig({
     command: 'npm run dev',
     url: baseURL,
     timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
+    // This is the key change: always reuse the server if it's already running.
+    reuseExistingServer: true,
   },
 });

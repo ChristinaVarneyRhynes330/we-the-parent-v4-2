@@ -69,16 +69,16 @@
         - generic [ref=e71]:
           - heading "Add New Narrative Entry" [level=2] [ref=e72]
           - textbox "Enter a new narrative point..." [ref=e73]
-          - button "Add Entry" [active] [ref=e74] [cursor=pointer]:
+          - button "Add Entry" [ref=e74] [cursor=pointer]:
             - img [ref=e75] [cursor=pointer]
             - text: Add Entry
-        - paragraph [ref=e76]: Loading entries...
         - generic [ref=e78]:
-          - img [ref=e79]
-          - paragraph [ref=e82]: No narrative entries yet.
-          - paragraph [ref=e83]: Add your first entry to begin building your case narrative.
-  - generic [ref=e85]: xl
-  - button "Open Next.js Dev Tools" [ref=e91] [cursor=pointer]:
-    - img [ref=e92] [cursor=pointer]
-  - alert [ref=e95]
+          - textbox [active] [ref=e79]: This entry has been updated.
+          - generic [ref=e80]:
+            - button "Save" [ref=e81] [cursor=pointer]
+            - button "Cancel" [ref=e82] [cursor=pointer]
+  - generic [ref=e84]: xl
+  - button "Open Next.js Dev Tools" [ref=e90] [cursor=pointer]:
+    - img [ref=e91] [cursor=pointer]
+  - alert [ref=e94]
 ```

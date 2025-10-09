@@ -20,12 +20,13 @@ interface CaseContextType {
 
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
-export function CaseProvider({ children }: { children: ReactNode }) {
+export function CaseProvider({ children, mockedCase }: { children: ReactNode, mockedCase?: Case | null }) {
   const [cases, setCases] = useState<Case[]>([]);
   const [activeCase, setActiveCaseState] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchCases = useCallback(async () => {
+    if (mockedCase) return;
     setLoading(true);
     try {
       const response = await fetch('/api/cases');
@@ -51,11 +52,17 @@ export function CaseProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mockedCase]);
 
   useEffect(() => {
-    fetchCases();
-  }, [fetchCases]);
+    if (mockedCase) {
+      setActiveCaseState(mockedCase);
+      setCases([mockedCase]);
+      setLoading(false);
+    } else {
+      fetchCases();
+    }
+  }, [fetchCases, mockedCase]);
 
   const setActiveCase = (caseId: string | null) => {
     if (caseId) {

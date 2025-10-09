@@ -1,13 +1,14 @@
 # Page snapshot
 
 ```yaml
-- generic [ref=e1]:
+- generic [active] [ref=e1]:
   - generic [ref=e2]:
     - generic [ref=e4]:
       - heading "We The Parent™" [level=1] [ref=e8]
       - generic [ref=e10]:
         - generic [ref=e11]: Current Case
-        - combobox "Current Case" [ref=e12]
+        - combobox "Current Case" [ref=e12]:
+          - option "()" [selected]
         - button "New Case" [ref=e13] [cursor=pointer]:
           - img [ref=e14] [cursor=pointer]
           - text: New Case
@@ -68,60 +69,11 @@
           - button "Add New Event" [ref=e70] [cursor=pointer]:
             - img
             - text: Add New Event
-        - dialog "Add New Event" [ref=e71]:
-          - generic [ref=e72]:
-            - generic [ref=e74]:
-              - heading "Add New Event" [level=2] [ref=e75]
-              - button "Close dialog" [ref=e76] [cursor=pointer]:
-                - img [ref=e77] [cursor=pointer]
-            - generic [ref=e81]:
-              - generic [ref=e82]:
-                - generic [ref=e83]:
-                  - generic [ref=e84]: Event Title
-                  - textbox "Event Title" [ref=e85]: Mediation Session
-                - generic [ref=e86]:
-                  - generic [ref=e87]: Event Type
-                  - combobox "Event Type" [ref=e88]:
-                    - option "Court Hearing"
-                    - option "Important Deadline"
-                    - option "Appointment" [selected]
-                    - option "Document Filing"
-                    - option "Other Event"
-              - generic [ref=e89]:
-                - generic [ref=e90]: Event Date
-                - generic [ref=e91]:
-                  - img [ref=e92]
-                  - textbox "Event Date" [ref=e94]: 2025-10-20T14:00
-              - generic [ref=e95]:
-                - generic [ref=e96]: Location
-                - generic [ref=e97]:
-                  - img [ref=e98]
-                  - textbox "Location" [ref=e101]
-              - generic [ref=e102]:
-                - generic [ref=e103]: Event Description
-                - textbox "Event Description" [ref=e104]
-              - generic [ref=e105]:
-                - generic [ref=e106]: Additional Notes
-                - textbox "Additional Notes" [ref=e107]
-              - generic [ref=e108]:
-                - button "Cancel" [ref=e109] [cursor=pointer]
-                - button "Save Event" [active] [ref=e110] [cursor=pointer]:
-                  - img [ref=e111] [cursor=pointer]
-                  - text: Save Event
-        - generic [ref=e114]:
-          - paragraph [ref=e115]: No events on the timeline yet.
-          - paragraph [ref=e116]: Click "Add New Event" to get started.
-  - generic [ref=e118]: xl
-  - generic [ref=e123] [cursor=pointer]:
-    - button "Open Next.js Dev Tools" [ref=e124] [cursor=pointer]:
-      - img [ref=e125] [cursor=pointer]
-    - generic [ref=e128] [cursor=pointer]:
-      - button "Open issues overlay" [ref=e129] [cursor=pointer]:
-        - generic [ref=e130] [cursor=pointer]:
-          - generic [ref=e131] [cursor=pointer]: "0"
-          - generic [ref=e132] [cursor=pointer]: "1"
-        - generic [ref=e133] [cursor=pointer]: Issue
-      - button "Collapse issues badge" [ref=e134] [cursor=pointer]:
-        - img [ref=e135] [cursor=pointer]
-  - alert [ref=e137]
+        - generic [ref=e72]:
+          - paragraph [ref=e73]: No events on the timeline yet.
+          - paragraph [ref=e74]: Click "Add New Event" to get started.
+  - generic [ref=e76]: xl
+  - button "Open Next.js Dev Tools" [ref=e82] [cursor=pointer]:
+    - img [ref=e83] [cursor=pointer]
+  - alert [ref=e86]
 ```

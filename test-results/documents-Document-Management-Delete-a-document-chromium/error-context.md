@@ -61,46 +61,9 @@
           - /url: /compliance
           - img [ref=e61] [cursor=pointer]
           - text: Compliance Check
-    - main [ref=e64]:
-      - generic [ref=e67]:
-        - generic [ref=e68]:
-          - generic [ref=e69]:
-            - heading "Documents" [level=1] [ref=e70]
-            - paragraph [ref=e71]: Manage your case documents and evidence
-          - generic [ref=e72]:
-            - button "Refresh" [ref=e73] [cursor=pointer]:
-              - img [ref=e74] [cursor=pointer]
-              - text: Refresh
-            - generic [ref=e79] [cursor=pointer]:
-              - img [ref=e80] [cursor=pointer]
-              - text: Upload Document
-        - generic [ref=e83]:
-          - img [ref=e84]
-          - paragraph [ref=e87]: Failed to fetch documents
-          - button "×" [ref=e88] [cursor=pointer]
-        - generic [ref=e90]:
-          - generic [ref=e91]:
-            - img [ref=e92]
-            - generic [ref=e95]: Search documents
-            - searchbox "Search documents" [ref=e96]
-          - generic [ref=e97]:
-            - img [ref=e98]
-            - generic [ref=e100]: Filter documents by type
-            - combobox "Filter documents by type" [ref=e101]:
-              - option "All Types (0)" [selected]
-              - option "Motion (0)"
-              - option "Evidence (0)"
-              - option "Court Order (0)"
-              - option "Affidavit (0)"
-              - option "Letter (0)"
-              - option "Other (0)"
-        - generic [ref=e103]:
-          - img [ref=e104]
-          - generic [ref=e107]:
-            - paragraph [ref=e108]: No documents found
-            - paragraph [ref=e109]: Upload your first document to get started.
-  - generic [ref=e111]: xl
-  - button "Open Next.js Dev Tools" [ref=e117] [cursor=pointer]:
-    - img [ref=e118] [cursor=pointer]
-  - alert [ref=e121]
+    - main [ref=e64]
+  - generic [ref=e78]: xl
+  - button "Open Next.js Dev Tools" [ref=e84] [cursor=pointer]:
+    - img [ref=e85] [cursor=pointer]
+  - alert [ref=e88]
 ```

@@ -7,7 +7,7 @@ test.describe('Narrative Entry Management', () => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ cases: [{ id: '123', case_name: 'Test Case' }] }),
+        body: JSON.stringify({ cases: [{ id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', case_name: 'Test Case' }] }),
       });
     });
 
@@ -29,6 +29,10 @@ test.describe('Narrative Entry Management', () => {
           body: JSON.stringify([{ ...postData, id: `mock-${Date.now()}` }]),
         });
       }
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('activeCaseId', 'a1b2c3d4-e5f6-7890-1234-567890abcdef');
     });
 
     // Navigate to the narrative page before each test

@@ -47,7 +47,7 @@ const deleteNarrativeEntry = async (entryId: string): Promise<void> => {
 };
 
 // --- THE CUSTOM HOOK ---
-export function useNarrative(caseId: string) {
+export function useNarrative(caseId: string | undefined) {
   const queryClient = useQueryClient();
 
   const queryKey = ['narrative', caseId];
@@ -58,13 +58,27 @@ export function useNarrative(caseId: string) {
     error 
   } = useQuery<NarrativeEntry[]>({
     queryKey,
-    queryFn: () => fetchNarrativeEntries(caseId),
+    queryFn: () => fetchNarrativeEntries(caseId!),
     enabled: !!caseId,
   });
 
   const createEntryMutation = useMutation({
     mutationFn: createNarrativeEntry,
-    onSuccess: () => {
+    onMutate: async (newEntry: NewNarrativeEntry) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousEntries = queryClient.getQueryData<NarrativeEntry[]>(queryKey);
+      const optimisticEntry: NarrativeEntry = {
+        id: `optimistic-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        ...newEntry,
+      };
+      queryClient.setQueryData<NarrativeEntry[]>(queryKey, (old) => [...(old || []), optimisticEntry]);
+      return { previousEntries };
+    },
+    onError: (err, newEntry, context) => {
+      queryClient.setQueryData(queryKey, context?.previousEntries);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
@@ -78,7 +92,16 @@ export function useNarrative(caseId: string) {
 
   const deleteEntryMutation = useMutation({
     mutationFn: deleteNarrativeEntry,
-    onSuccess: () => {
+    onMutate: async (entryId: string) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousEntries = queryClient.getQueryData<NarrativeEntry[]>(queryKey);
+      queryClient.setQueryData<NarrativeEntry[]>(queryKey, (old) => old?.filter(entry => entry.id !== entryId) || []);
+      return { previousEntries };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(queryKey, context?.previousEntries);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
