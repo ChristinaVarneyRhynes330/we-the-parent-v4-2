@@ -6,7 +6,7 @@ import { NewTimelineEvent } from '@/hooks/useTimeline';
 
 interface EventFormProps {
   event: NewTimelineEvent | null;
-  onSubmit: (eventData: NewTimelineEvent) => void;
+  onSubmit: (eventData: NewTimelineEvent) => Promise<void>;
   onClose: () => void;
 }
 
@@ -45,16 +45,27 @@ export default function EventForm({ event: editingEvent, onSubmit, onClose }: Ev
     return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
+
+    setError(null);
     setIsSubmitting(true);
-    onSubmit(formData);
-    setIsSubmitting(false);
+
+    try {
+      await onSubmit(formData);
+      // On successful submission, the parent will close the form.
+    } catch (apiError) {
+      // Catch errors from the API submission (re-thrown from the parent)
+      setError('An error occurred while saving the event. Please try again.');
+      console.error("Submission failed:", apiError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

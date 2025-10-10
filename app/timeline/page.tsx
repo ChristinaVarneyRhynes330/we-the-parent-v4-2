@@ -46,29 +46,36 @@ const TimelinePage = () => {
   };
 
   const handleFormSubmit = (eventData: NewTimelineEvent) => {
-    if (!activeCase) return;
+    if (!activeCase) {
+      return Promise.reject(new Error("No active case selected."));
+    }
     const eventWithCaseId = { ...eventData, case_id: activeCase.id };
+
+    const handleSuccess = (message: string) => {
+      setSuccessMessage(message);
+      setIsFormVisible(false);
+      setEditingEvent(null);
+    };
+
+    const handleError = (error: Error, action: string) => {
+      console.error(`${action} event error:`, error);
+      // Re-throw the error so the form can catch it
+      throw error;
+    };
 
     if (editingEvent) {
       // If we are editing, call the updateEvent mutation
-      updateEvent({ ...eventWithCaseId, id: editingEvent.id }, {
-        onSuccess: () => setSuccessMessage('Event updated successfully'),
-        onError: (error) => {
-          console.error('Update event error:', error);
-        }
+      return updateEvent({ ...eventWithCaseId, id: editingEvent.id }, {
+        onSuccess: () => handleSuccess('Event updated successfully'),
+        onError: (error) => handleError(error, 'Update')
       });
     } else {
       // Otherwise, call the addEvent mutation
-      addEvent(eventWithCaseId, {
-        onSuccess: () => setSuccessMessage('Event created successfully'),
-        onError: (error) => {
-          console.error('Create event error:', error);
-        }
+      return addEvent(eventWithCaseId, {
+        onSuccess: () => handleSuccess('Event created successfully'),
+        onError: (error) => handleError(error, 'Create')
       });
     }
-    // Close the form after submission
-    setIsFormVisible(false);
-    setEditingEvent(null);
   };
 
   const handleDelete = (id: string) => {
