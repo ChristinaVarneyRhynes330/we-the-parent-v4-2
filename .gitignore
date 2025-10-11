@@ -34,3 +34,7 @@ Thumbs.db
 # Misc
 coverage/
 *.tgz
+
+# Test reports
+playwright-report/
+test-results/
