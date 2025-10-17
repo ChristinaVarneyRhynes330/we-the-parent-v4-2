@@ -2,47 +2,28 @@
 
 import React, { useState } from 'react';
 import { AlertTriangle, FileText, Send } from 'lucide-react';
+import { useEmergencyMotion } from '@/hooks/useEmergencyMotion';
 
 export default function EmergencyPage() {
+  const { generateEmergencyMotion, isGenerating, draft, error } = useEmergencyMotion();
   const [formData, setFormData] = useState({
     caseName: 'Your Name v. Department of Children and Families',
     caseNumber: '2024-DP-000587-XXDP-BC',
     reason: '',
     outcome: ''
   });
-  const [generatedMotion, setGeneratedMotion] = useState('');
-  const [generating, setGenerating] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const generateEmergencyMotion = async () => {
+  const handleGenerateEmergencyMotion = () => {
     if (!formData.reason || !formData.outcome) {
       alert('Please fill in all required fields');
       return;
     }
 
-    setGenerating(true);
-    try {
-      const response = await fetch('/api/emergency-motion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setGeneratedMotion(data.draft);
-      } else {
-        alert('Failed to generate motion: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error generating motion:', error);
-      alert('Failed to generate motion');
-    } finally {
-      setGenerating(false);
-    }
+    generateEmergencyMotion(formData);
   };
 
   return (
@@ -104,11 +85,11 @@ export default function EmergencyPage() {
               </div>
 
               <button
-                onClick={generateEmergencyMotion}
-                disabled={generating}
+                onClick={handleGenerateEmergencyMotion}
+                disabled={isGenerating}
                 className="w-full button-primary flex items-center justify-center gap-2"
               >
-                {generating ? (
+                {isGenerating ? (
                   'Generating...'
                 ) : (
                   <>
@@ -122,15 +103,20 @@ export default function EmergencyPage() {
 
           <div className="card">
             <h2 className="section-subheader">Generated Motion</h2>
-            {generatedMotion ? (
-              <div className="bg-white border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm">{generatedMotion}</pre>
+            {isGenerating ? (
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
               </div>
             ) : (
-              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Emergency motion will appear here</p>
-              </div>
+              <textarea
+                readOnly
+                value={draft || error?.message || ''}
+                placeholder="Emergency motion will appear here..."
+                className="w-full h-96 p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm text-charcoal-navy focus:ring-brand focus:border-brand"
+              />
             )}
           </div>
         </div>

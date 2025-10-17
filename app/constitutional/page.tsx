@@ -1,35 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Scale } from 'lucide-react';
-
-interface Precedent {
-  title: string;
-  summary: string;
-  relevance: string;
-}
+import { usePrecedents } from '@/hooks/usePrecedents';
 
 export default function ConstitutionalPage() {
-  const [precedents, setPrecedents] = useState<Precedent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { precedents, isLoading, error } = usePrecedents();
 
-  useEffect(() => {
-    fetchPrecedents();
-  }, []);
-
-  const fetchPrecedents = async () => {
-    try {
-      const response = await fetch('/api/constitutional-law');
-      const data = await response.json();
-      setPrecedents(data.precedents || []);
-    } catch (error) {
-      console.error('Error fetching precedents:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-warm-ivory p-6">
         <div className="max-w-6xl mx-auto">
@@ -44,6 +22,10 @@ export default function ConstitutionalPage() {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500">Error: {error.message}</div>;
   }
 
   return (

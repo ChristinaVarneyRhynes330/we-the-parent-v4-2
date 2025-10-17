@@ -1,15 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { UserPlus, X, Cake, User, MapPin } from 'lucide-react';
-
-interface Child {
-  id: string;
-  name: string;
-  date_of_birth: string;
-  placement_type?: string;
-  placement_address?: string;
-}
+import { useCase } from '@/contexts/CaseContext';
+import { useChildren } from '@/hooks/useChildren';
 
 interface ChildFormData {
   name: string;
@@ -19,10 +13,10 @@ interface ChildFormData {
 }
 
 export default function ChildrenPage() {
-  const [children, setChildren] = useState<Child[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activeCase } = useCase();
+  const { children, isLoading, error, createChild, isCreating } = useChildren(activeCase?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
     date_of_birth: '',
@@ -30,24 +24,6 @@ export default function ChildrenPage() {
     placement_address: '',
   });
 
-  useEffect(() => {
-    fetchChildren();
-  }, []);
-
-  const fetchChildren = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/children');
-      if (!response.ok) throw new Error('Failed to fetch children.');
-      const data = await response.json();
-      setChildren(data.children || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -55,23 +31,18 @@ export default function ChildrenPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    try {
-      const response = await fetch('/api/children', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to add child.');
+    setFormError(null);
+    if (!activeCase) return;
+
+    createChild({ ...formData, case_id: activeCase.id }, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+        setFormData({ name: '', date_of_birth: '', placement_type: 'Relative Caregiver', placement_address: '' });
+      },
+      onError: (err: any) => {
+        setFormError(err.message);
       }
-      await fetchChildren();
-      setIsModalOpen(false);
-      setFormData({ name: '', date_of_birth: '', placement_type: 'Relative Caregiver', placement_address: '' });
-    } catch (err: any) {
-      setError(err.message);
-    }
+    });
   };
   
   const calculateAge = (dob: string) => {
@@ -122,10 +93,12 @@ export default function ChildrenPage() {
                 <label htmlFor="placement_address" className="form-label">Placement Address</label>
                 <input id="placement_address" name="placement_address" value={formData.placement_address} onChange={handleInputChange} className="form-input" placeholder="e.g., 123 Main St, Anytown, FL" />
               </div>
-              {error && <p className="form-error">{error}</p>}
+              {formError && <p className="form-error">{formError}</p>}
               <div className="flex justify-end gap-4 pt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="button-secondary">Cancel</button>
-                <button type="submit" className="button-primary">Save Child</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="button-secondary" disabled={isCreating}>Cancel</button>
+                <button type="submit" className="button-primary" disabled={isCreating}>
+                  {isCreating ? 'Saving...' : 'Save Child'}
+                </button>
               </div>
             </form>
           </div>
@@ -146,11 +119,11 @@ export default function ChildrenPage() {
             </button>
           </div>
           
-          {loading ? (
+          {isLoading ? (
              <p>Loading...</p>
           ) : error ? (
             <div className="card text-center py-12 bg-garnet/10 text-garnet">
-              <p>{error}</p>
+              <p>{error.message}</p>
             </div>
           ) : children.length === 0 ? (
             <div className="card text-center py-12">

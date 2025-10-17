@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
+import { createSSRClient } from '@/lib/supabase/server';
 
 const performDocumentAnalysis = async (documentContent: string): Promise<{ documentType: string; summary: string }> => {
   if (!process.env.OPENAI_API_KEY) {
@@ -55,6 +56,9 @@ const performDocumentAnalysis = async (documentContent: string): Promise<{ docum
 };
 
 export async function POST(request: NextRequest) {
+  const supabase = await createSSRClient();
+
+
   try {
     const body = await request.json();
     const { content } = body;

@@ -1,0 +1,129 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - heading "We The Parent™" [level=1] [ref=e8]
+      - generic [ref=e10]:
+        - generic [ref=e11]: Current Case
+        - combobox "Current Case" [ref=e12]
+        - button "New Case" [ref=e13] [cursor=pointer]:
+          - img [ref=e14] [cursor=pointer]
+          - text: New Case
+      - navigation [ref=e16]:
+        - link "Dashboard" [ref=e17] [cursor=pointer]:
+          - /url: /
+          - img [ref=e18] [cursor=pointer]
+          - text: Dashboard
+        - link "Draft Documents" [ref=e21] [cursor=pointer]:
+          - /url: /draft
+          - img [ref=e22] [cursor=pointer]
+          - text: Draft Documents
+        - link "Documents" [ref=e25] [cursor=pointer]:
+          - /url: /documents
+          - img [ref=e26] [cursor=pointer]
+          - text: Documents
+        - link "Children" [ref=e29] [cursor=pointer]:
+          - /url: /children
+          - img [ref=e30] [cursor=pointer]
+          - text: Children
+        - link "Calendar" [ref=e35] [cursor=pointer]:
+          - /url: /calendar
+          - img [ref=e36] [cursor=pointer]
+          - text: Calendar
+        - link "AI Assistant" [ref=e38] [cursor=pointer]:
+          - /url: /chat
+          - img [ref=e39] [cursor=pointer]
+          - text: AI Assistant
+        - link "Pro Se Guide" [ref=e41] [cursor=pointer]:
+          - /url: /guide
+          - img [ref=e42] [cursor=pointer]
+          - text: Pro Se Guide
+        - link "Legal Research" [ref=e44] [cursor=pointer]:
+          - /url: /research
+          - img [ref=e45] [cursor=pointer]
+          - text: Legal Research
+        - link "Constitutional Law" [ref=e48] [cursor=pointer]:
+          - /url: /constitutional
+          - img [ref=e49] [cursor=pointer]
+          - text: Constitutional Law
+        - link "Evidence" [ref=e53] [cursor=pointer]:
+          - /url: /evidence
+          - img [ref=e54] [cursor=pointer]
+          - text: Evidence
+        - link "Emergency Motion" [ref=e57] [cursor=pointer]:
+          - /url: /emergency
+          - img [ref=e58] [cursor=pointer]
+          - text: Emergency Motion
+        - link "Compliance Check" [ref=e60] [cursor=pointer]:
+          - /url: /compliance
+          - img [ref=e61] [cursor=pointer]
+          - text: Compliance Check
+    - main [ref=e64]:
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - heading "Case Timeline" [level=1] [ref=e68]
+          - generic [ref=e69]: "Total Number of Events: 0"
+          - button "Add New Event" [ref=e70] [cursor=pointer]:
+            - img
+            - text: Add New Event
+        - dialog "Add New Event" [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e74]:
+              - heading "Add New Event" [level=2] [ref=e75]
+              - button "Close dialog" [ref=e76] [cursor=pointer]:
+                - img [ref=e77] [cursor=pointer]
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e83]:
+                  - generic [ref=e84]: Event Title
+                  - textbox "Event Title" [ref=e85]: New Test Event
+                - generic [ref=e86]:
+                  - generic [ref=e87]: Event Type
+                  - combobox "Event Type" [ref=e88]:
+                    - option "Court Hearing"
+                    - option "Important Deadline"
+                    - option "Appointment" [selected]
+                    - option "Document Filing"
+                    - option "Other Event"
+              - generic [ref=e89]:
+                - generic [ref=e90]: Event Date
+                - generic [ref=e91]:
+                  - img [ref=e92]
+                  - textbox "Event Date" [ref=e94]: 2025-11-15T10:00
+              - generic [ref=e95]:
+                - generic [ref=e96]: Location
+                - generic [ref=e97]:
+                  - img [ref=e98]
+                  - textbox "Location" [ref=e101]
+              - generic [ref=e102]:
+                - generic [ref=e103]: Event Description
+                - textbox "Event Description" [ref=e104]
+              - generic [ref=e105]:
+                - generic [ref=e106]: Additional Notes
+                - textbox "Additional Notes" [ref=e107]
+              - alert [ref=e108]:
+                - paragraph [ref=e109]: An error occurred while saving the event. Please try again.
+              - generic [ref=e110]:
+                - button "Cancel" [ref=e111] [cursor=pointer]
+                - button "Save Event" [ref=e112] [cursor=pointer]:
+                  - img [ref=e113] [cursor=pointer]
+                  - text: Save Event
+        - generic [ref=e116]:
+          - paragraph [ref=e117]: No events on the timeline yet.
+          - paragraph [ref=e118]: Click "Add New Event" to get started.
+  - generic [ref=e120]: xl
+  - generic [ref=e125] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e126] [cursor=pointer]:
+      - img [ref=e127] [cursor=pointer]
+    - generic [ref=e130] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e131] [cursor=pointer]:
+        - generic [ref=e132] [cursor=pointer]:
+          - generic [ref=e133] [cursor=pointer]: "0"
+          - generic [ref=e134] [cursor=pointer]: "1"
+        - generic [ref=e135] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e136] [cursor=pointer]:
+        - img [ref=e137] [cursor=pointer]
+  - alert [ref=e139]
+```

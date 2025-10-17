@@ -1,0 +1,490 @@
+# Testing & Debugging Automation Strategy
+## We The Parent™ - Zero-Cost Implementation Guide
+
+---
+
+## 1. Testing Framework Setup
+
+### A. Install Testing Dependencies
+```bash
+# Install Playwright (already partially configured)
+npm install -D @playwright/test
+
+# Install testing utilities
+npm install -D @testing-library/react @testing-library/jest-dom
+npm install -D vitest @vitejs/plugin-react
+
+# Install type checking tools
+npm install -D typescript @types/node @types/react
+```
+
+### B. Configure Vitest for Unit Tests
+Create `vitest.config.ts`:
+```typescript
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./tests/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './'),
+    },
+  },
+})
+```
+
+---
+
+## 2. Testing Structure
+
+```
+tests/
+├── unit/               # Component & function tests
+│   ├── components/
+│   ├── hooks/
+│   └── utils/
+├── integration/        # API route tests
+│   ├── api/
+│   └── database/
+├── e2e/               # Playwright tests
+│   ├── critical-flows/
+│   ├── documents/
+│   └── timeline/
+├── fixtures/          # Test data
+└── setup.ts           # Global test setup
+```
+
+---
+
+## 3. Critical Test Coverage (Priority Order)
+
+### **Phase 1: Core Functionality (Week 1)**
+
+#### A. Document Upload & Management
+```typescript
+// tests/e2e/critical-flows/document-upload.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Document Upload Flow', () => {
+  test('uploads document successfully', async ({ page }) => {
+    await page.goto('/documents');
+    
+    // Upload file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles('tests/fixtures/sample.pdf');
+    
+    // Verify upload success
+    await expect(page.locator('text=Successfully uploaded')).toBeVisible();
+    
+    // Verify document appears in list
+    await expect(page.locator('text=sample.pdf')).toBeVisible();
+  });
+
+  test('handles upload errors gracefully', async ({ page }) => {
+    await page.goto('/documents');
+    
+    // Try to upload oversized file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles('tests/fixtures/large-file.pdf');
+    
+    // Verify error message
+    await expect(page.locator('text=File is too large')).toBeVisible();
+  });
+});
+```
+
+#### B. Timeline Events
+```typescript
+// tests/e2e/critical-flows/timeline.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Timeline Management', () => {
+  test('creates new timeline event', async ({ page }) => {
+    await page.goto('/timeline');
+    
+    // Click add event
+    await page.click('button:has-text("Add Event")');
+    
+    // Fill form
+    await page.fill('input[name="title"]', 'Court Hearing');
+    await page.fill('input[name="event_date"]', '2025-03-15');
+    await page.selectOption('select[name="event_type"]', 'hearing');
+    
+    // Submit
+    await page.click('button:has-text("Save Event")');
+    
+    // Verify event appears
+    await expect(page.locator('text=Court Hearing')).toBeVisible();
+  });
+});
+```
+
+### **Phase 2: AI Features (Week 2)**
+
+#### C. Chat Functionality
+```typescript
+// tests/integration/api/chat.test.ts
+import { describe, it, expect, beforeAll } from 'vitest';
+
+describe('Chat API', () => {
+  it('returns relevant context from documents', async () => {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'user', content: 'What documents mention the hearing date?' }
+        ]
+      })
+    });
+    
+    expect(response.ok).toBe(true);
+    const data = await response.json();
+    expect(data).toHaveProperty('messages');
+  });
+});
+```
+
+### **Phase 3: Data Integrity (Week 3)**
+
+#### D. Database Operations
+```typescript
+// tests/integration/database/cases.test.ts
+import { describe, it, expect } from 'vitest';
+import { createServiceClient } from '@/lib/supabase/server';
+
+describe('Case Management', () => {
+  it('creates case with required fields', async () => {
+    const supabase = createServiceClient();
+    
+    const { data, error } = await supabase
+      .from('cases')
+      .insert({
+        name: 'Test Case',
+        case_number: 'TEST-001',
+        user_id: 'test-user-id'
+      })
+      .select()
+      .single();
+    
+    expect(error).toBeNull();
+    expect(data).toHaveProperty('id');
+    expect(data.name).toBe('Test Case');
+  });
+});
+```
+
+---
+
+## 4. GitHub Actions CI/CD Pipeline
+
+### A. Automated Testing Workflow
+Create `.github/workflows/test.yml`:
+```yaml
+name: Automated Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npm run type-check
+      
+      - name: Run unit tests
+        run: npm run test:unit
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+```
+
+### B. Code Quality Check
+Create `.github/workflows/quality.yml`:
+```yaml
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Check formatting
+        run: npm run format:check
+```
+
+---
+
+## 5. Package.json Scripts
+
+Add these to your `package.json`:
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:unit": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "type-check": "tsc --noEmit",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  }
+}
+```
+
+---
+
+## 6. Debugging Tools (Zero Cost)
+
+### A. VS Code Configuration
+Create `.vscode/launch.json`:
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Next.js: debug client-side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Debug Playwright Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/playwright",
+      "args": ["test", "--debug"]
+    }
+  ]
+}
+```
+
+### B. Supabase Local Development
+```bash
+# Install Supabase CLI
+npm install -g supabase
+
+# Start local Supabase (free alternative to cloud during dev)
+supabase init
+supabase start
+
+# Run migrations
+supabase db push
+```
+
+---
+
+## 7. Test Fixtures & Mock Data
+
+### A. Create Test Fixtures
+Create `tests/fixtures/test-data.ts`:
+```typescript
+export const mockCase = {
+  id: 'test-case-id',
+  name: 'Test v. Department',
+  case_number: '2024-DP-TEST',
+  user_id: 'test-user-id',
+  created_at: new Date().toISOString()
+};
+
+export const mockDocument = {
+  id: 'test-doc-id',
+  case_id: 'test-case-id',
+  file_name: 'test-document.pdf',
+  file_type: 'application/pdf',
+  file_size: 1024,
+  document_type: 'Motion',
+  summary: 'Test document summary',
+  created_at: new Date().toISOString()
+};
+
+export const mockEvent = {
+  id: 'test-event-id',
+  case_id: 'test-case-id',
+  title: 'Test Hearing',
+  event_date: '2025-03-15',
+  event_type: 'hearing',
+  description: 'Test hearing description'
+};
+```
+
+---
+
+## 8. Monitoring & Error Tracking (Free Tier)
+
+### A. Vercel Analytics (Free)
+Already included with Vercel deployment
+
+### B. Sentry (Free Tier - 5k events/month)
+```bash
+npm install @sentry/nextjs
+
+# Initialize
+npx @sentry/wizard -i nextjs
+```
+
+### C. Console Logging Strategy
+Create `lib/logger.ts`:
+```typescript
+type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+
+export const logger = {
+  info: (message: string, data?: any) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[INFO] ${message}`, data);
+    }
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data);
+  },
+  error: (message: string, error?: any) => {
+    console.error(`[ERROR] ${message}`, error);
+    // Send to Sentry in production
+  }
+};
+```
+
+---
+
+## 9. Performance Testing (Free)
+
+### A. Lighthouse CI
+Create `.github/workflows/lighthouse.yml`:
+```yaml
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: treosh/lighthouse-ci-action@v9
+        with:
+          urls: |
+            https://your-app.vercel.app
+            https://your-app.vercel.app/documents
+            https://your-app.vercel.app/timeline
+          uploadArtifacts: true
+```
+
+---
+
+## 10. Quick Start Checklist
+
+### Week 1: Foundation
+- [ ] Install all testing dependencies
+- [ ] Set up Vitest configuration
+- [ ] Create test folder structure
+- [ ] Write first 5 E2E tests for critical flows
+- [ ] Set up GitHub Actions for automated testing
+
+### Week 2: Coverage
+- [ ] Add unit tests for utility functions
+- [ ] Test API routes with integration tests
+- [ ] Add error boundary tests
+- [ ] Test form validations
+- [ ] Set up code coverage reporting
+
+### Week 3: Automation
+- [ ] Configure pre-commit hooks (husky)
+- [ ] Set up automatic dependency updates (Dependabot)
+- [ ] Add performance monitoring
+- [ ] Create test data seeding scripts
+- [ ] Document testing procedures
+
+---
+
+## 11. Free Resources & Learning
+
+### Testing
+- Playwright Docs: https://playwright.dev
+- Vitest Docs: https://vitest.dev
+- Testing Library: https://testing-library.com
+
+### CI/CD
+- GitHub Actions: https://docs.github.com/actions
+- Vercel Deployment: https://vercel.com/docs
+
+### Monitoring
+- Vercel Analytics (Free): Built-in
+- Sentry Free Tier: https://sentry.io
+- LogRocket Free Tier: https://logrocket.com (alternative)
+
+---
+
+## Next Steps
+
+1. **Start with critical path testing**: Document upload → Timeline events → Chat
+2. **Automate on every commit**: Use GitHub Actions
+3. **Monitor in production**: Set up Sentry or similar
+4. **Iterate**: Add more tests as you find bugs
+5. **Document**: Keep a testing log of what works
+
+This setup provides enterprise-level testing at zero cost using free tiers and open-source tools.

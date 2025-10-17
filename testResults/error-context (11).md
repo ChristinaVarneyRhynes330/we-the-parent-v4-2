@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - heading "We The Parent™" [level=1] [ref=e8]
+      - generic [ref=e10]:
+        - generic [ref=e11]: Current Case
+        - combobox "Current Case" [ref=e12]
+        - button "New Case" [active] [ref=e13] [cursor=pointer]:
+          - img [ref=e14] [cursor=pointer]
+          - text: New Case
+      - navigation [ref=e16]:
+        - link "Dashboard" [ref=e17] [cursor=pointer]:
+          - /url: /
+          - img [ref=e18] [cursor=pointer]
+          - text: Dashboard
+        - link "Draft Documents" [ref=e21] [cursor=pointer]:
+          - /url: /draft
+          - img [ref=e22] [cursor=pointer]
+          - text: Draft Documents
+        - link "Documents" [ref=e25] [cursor=pointer]:
+          - /url: /documents
+          - img [ref=e26] [cursor=pointer]
+          - text: Documents
+        - link "Children" [ref=e29] [cursor=pointer]:
+          - /url: /children
+          - img [ref=e30] [cursor=pointer]
+          - text: Children
+        - link "Calendar" [ref=e35] [cursor=pointer]:
+          - /url: /calendar
+          - img [ref=e36] [cursor=pointer]
+          - text: Calendar
+        - link "AI Assistant" [ref=e38] [cursor=pointer]:
+          - /url: /chat
+          - img [ref=e39] [cursor=pointer]
+          - text: AI Assistant
+        - link "Pro Se Guide" [ref=e41] [cursor=pointer]:
+          - /url: /guide
+          - img [ref=e42] [cursor=pointer]
+          - text: Pro Se Guide
+        - link "Legal Research" [ref=e44] [cursor=pointer]:
+          - /url: /research
+          - img [ref=e45] [cursor=pointer]
+          - text: Legal Research
+        - link "Constitutional Law" [ref=e48] [cursor=pointer]:
+          - /url: /constitutional
+          - img [ref=e49] [cursor=pointer]
+          - text: Constitutional Law
+        - link "Evidence" [ref=e53] [cursor=pointer]:
+          - /url: /evidence
+          - img [ref=e54] [cursor=pointer]
+          - text: Evidence
+        - link "Emergency Motion" [ref=e57] [cursor=pointer]:
+          - /url: /emergency
+          - img [ref=e58] [cursor=pointer]
+          - text: Emergency Motion
+        - link "Compliance Check" [ref=e60] [cursor=pointer]:
+          - /url: /compliance
+          - img [ref=e61] [cursor=pointer]
+          - text: Compliance Check
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - heading "Create New Case" [level=2] [ref=e67]
+        - button [ref=e68] [cursor=pointer]:
+          - img
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: Case Name
+          - textbox "Case Name" [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74]: Case Number (Optional)
+          - textbox "Case Number (Optional)" [ref=e75]
+        - generic [ref=e76]:
+          - button "Cancel" [ref=e77] [cursor=pointer]
+          - button "Create Case" [ref=e78] [cursor=pointer]
+    - main [ref=e79]:
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - heading "Case Timeline" [level=1] [ref=e83]
+          - generic [ref=e84]: "Total Number of Events: 0"
+          - button "Add New Event" [ref=e85] [cursor=pointer]:
+            - img
+            - text: Add New Event
+        - generic [ref=e87]:
+          - paragraph [ref=e88]: No events on the timeline yet.
+          - paragraph [ref=e89]: Click "Add New Event" to get started.
+  - generic [ref=e91]: xl
+  - button "Open Next.js Dev Tools" [ref=e97] [cursor=pointer]:
+    - img [ref=e98] [cursor=pointer]
+  - alert [ref=e101]
+```

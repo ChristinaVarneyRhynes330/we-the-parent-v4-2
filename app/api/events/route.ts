@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server'; // Use the helper from server.ts
+import { createSSRClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   console.log('[/api/events] GET request received');
   try {
     const { searchParams } = new URL(request.url);
     const caseId = searchParams.get('case_id');
-    const supabase = createServiceClient(); // Create the client using the helper
+    const supabase = await createSSRClient();
 
     if (!caseId) {
       return NextResponse.json({ error: 'case_id is required' }, { status: 400 });
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   console.log('[/api/events] POST request received');
   try {
-    const supabase = createServiceClient(); // Create the client using the helper
+    const supabase = await createSSRClient();
 
     const body = await request.json();
     const { case_id, title, event_date, ...otherFields } = body;

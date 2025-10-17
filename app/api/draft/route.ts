@@ -11,16 +11,20 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: NextRequest) {
-  const { templateId, caseId, userInstructions } = await req.json();
   const supabase = await createSSRClient();
+
+  const { templateId, caseId, userInstructions } = await req.json();
 
   if (!templateId || !caseId) {
     return NextResponse.json({ error: 'templateId and caseId are required.' }, { status: 400 });
   }
 
+  // Sanitize templateId to prevent path traversal
+  const sanitizedTemplateId = path.basename(templateId);
+
   try {
     // 1. Fetch the template content
-    const templatePath = path.join(process.cwd(), 'lib', 'templates', 'florida', `${templateId}.md`);
+    const templatePath = path.join(process.cwd(), 'lib', 'templates', 'florida', `${sanitizedTemplateId}.md`);
     const templateContent = await fs.readFile(templatePath, 'utf-8');
 
     // 2. Fetch relevant case data

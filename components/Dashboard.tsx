@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, FileText, Users, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 interface CaseProgress {
@@ -25,51 +26,26 @@ interface CurrentCase {
   status: string;
 }
 
+interface DashboardData {
+  currentCase: CurrentCase;
+  caseProgress: CaseProgress[];
+  upcomingEvents: UpcomingEvent[];
+}
+
+const fetchDashboardData = async (): Promise<DashboardData> => {
+  const response = await fetch('/api/dashboard');
+  if (!response.ok) {
+    throw new Error('Failed to fetch dashboard data');
+  }
+  const data = await response.json();
+  return data.dashboardData;
+};
+
 export default function Dashboard() {
-  const [caseProgress, setCaseProgress] = useState<CaseProgress[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
-  const [currentCase, setCurrentCase] = useState<CurrentCase | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      // Load static data (in a real app, this would come from APIs)
-      const caseProgressData = [
-        { "task": "Parenting Classes", "status": "Complete", "progress": 100 },
-        { "task": "Housing Stability", "status": "In Progress", "progress": 75 },
-        { "task": "Substance Abuse Program", "status": "In Progress", "progress": 60 },
-        { "task": "Mental Health Evaluation", "status": "Scheduled", "progress": 0 }
-      ];
-
-      const upcomingEventsData = [
-        { "title": "Adjudicatory Hearing", "date": "March 15, 2025 at 2:00 PM", "daysRemaining": 3, "type": "critical" as const },
-        { "title": "Supervised Visitation", "date": "March 20, 2025 at 10:00 AM", "daysRemaining": 8, "type": "routine" as const },
-        { "title": "Case Plan Review", "date": "March 25, 2025 at 1:30 PM", "daysRemaining": 13, "type": "important" as const },
-        { "title": "Judicial Review Hearing", "date": "April 10, 2025 at 9:00 AM", "daysRemaining": 29, "type": "important" as const }
-      ];
-
-      const currentCaseData = {
-        "number": "2024-DP-000587-XXDP-BC",
-        "nextHearing": "March 15, 2025",
-        "circuit": "5th Judicial Circuit",
-        "progress": 65,
-        "daysRemaining": 3,
-        "status": "Active"
-      };
-
-      setCaseProgress(caseProgressData);
-      setUpcomingEvents(upcomingEventsData);
-      setCurrentCase(currentCaseData);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, isLoading, error } = useQuery<DashboardData>({
+    queryKey: ['dashboard'],
+    queryFn: fetchDashboardData,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -97,7 +73,7 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-warm-ivory p-6">
         <div className="max-w-7xl mx-auto">
@@ -113,6 +89,16 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  if (error) {
+    return <div className="p-6 text-red-500">Error: {error.message}</div>;
+  }
+
+  if (!data) {
+    return <div className="p-6">No data available.</div>;
+  }
+
+  const { currentCase, caseProgress, upcomingEvents } = data;
 
   return (
     <div className="min-h-screen bg-warm-ivory p-6">

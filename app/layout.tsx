@@ -75,9 +75,11 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${dmSerif.variable} ${workSans.variable}`}>
-      <Providers>
-        <AppClientLayout>{children}</AppClientLayout>
-      </Providers>
+      <body className="font-body antialiased bg-warm-ivory text-charcoal-navy overflow-hidden">
+        <Providers>
+          <AppClientLayout>{children}</AppClientLayout>
+        </Providers>
+      </body>
     </html>
   );
 }

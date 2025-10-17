@@ -29,5 +29,7 @@
   "geminicodeassist.agentDebugMode": true,
   "geminicodeassist.codeGenerationPaneViewEnabled": true,
   "geminicodeassist.updateChannel": "Default",
-  "geminicodeassist.verboseLogging": true
+  "geminicodeassist.verboseLogging": true,
+  "geminicodeassist.chat.changeView": "Default diff view",
+  "geminicodeassist.inlineSuggestions.nextEditPredictions": true
 }

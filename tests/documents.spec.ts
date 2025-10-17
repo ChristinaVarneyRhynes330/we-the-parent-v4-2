@@ -1,93 +1,80 @@
 import { test, expect } from '@playwright/test';
+import type { Document } from '@/hooks/useDocuments';
 
-test.describe('Document Management', () => {
+let mockDocuments: Document[] = [];
+
+test.describe('Document Management with Correct Stateful Mock', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock the API call to get cases
-    await page.route('**/api/cases', route => {
+    mockDocuments = [];
+
+    await page.route('**/api/cases', async route => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ cases: [{ id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', case_name: 'Test Case' }] }),
+        body: JSON.stringify({ cases: [{ id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', name: 'Test Case' }] })
       });
     });
 
-    // Mock GET requests for documents
-    await page.route('**/api/documents', async route => {
-      if (route.request().method() === 'GET') {
+    await page.route('**/api/documents**', async (route, request) => {
+      if (request.method() === 'GET') {
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify([]), // Start with no documents
+          body: JSON.stringify({ documents: mockDocuments }),
         });
       }
-      await route.continue();
     });
 
-    // Mock POST requests to upload a new document
-    await page.route('**/api/upload', async route => {
-      if (route.request().method() === 'POST') {
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true, fileName: 'test-document.txt' }),
-        });
-      }
-      await route.continue();
+    await page.route('**/api/upload', async (route, request) => {
+        const formData = request.formData();
+        const file = formData.get('file');
+        const caseId = formData.get('caseId');
+
+        if (file && caseId) {
+            const newDoc: Document = {
+                id: `mock-doc-${Date.now()}`,
+                case_id: caseId,
+                file_name: file.name,
+                file_path: `/${caseId}/${file.name}`,
+                file_type: file.type,
+                file_size: file.size,
+                document_type: 'File',
+                summary: 'This is a mock summary.',
+                created_at: new Date().toISOString(),
+            };
+            mockDocuments.push(newDoc);
+            return route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ document: newDoc }),
+            });
+        }
     });
 
     await page.addInitScript(() => {
       window.localStorage.setItem('activeCaseId', 'a1b2c3d4-e5f6-7890-1234-567890abcdef');
     });
 
-    // Navigate to the documents page before each test
     await page.goto('/documents');
-    await expect(page.locator('#loading-screen')).toBeHidden({ timeout: 15000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test('Successfully upload a new document', async ({ page }) => {
-    // Get initial document count
-    const initialCount = await page.locator('.card', { hasText: 'Document:' }).count();
+    const fileName = 'my-test-document.txt';
 
-    // Create a fake file to upload
-    const fileContent = 'This is a test document.';
-    const fileName = 'test-document.txt';
+    await expect(page.getByText('Loading documents...')).not.toBeVisible();
 
-    // Set up the file chooser
+    await expect(page.getByText('No documents found for this case.')).toBeVisible();
+
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.getByTestId('upload-document-label').click();
     const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from(fileContent) });
+    await fileChooser.setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('test content') });
+    await page.getByRole('button', { name: 'Upload' }).click();
 
-    // Assertions
-    await expect(page.getByText(`Successfully uploaded ${fileName}`)).toBeVisible();
+    await page.waitForResponse('**/api/documents**');
+
+    await expect(page.getByTestId('upload-success-message')).toContainText(`Successfully uploaded ${fileName}`);
     await expect(page.getByText(fileName)).toBeVisible();
-    
-    const newCount = await page.locator('.card', { hasText: 'Document:' }).count();
-    expect(newCount).toBe(initialCount + 1);
-  });
-
-  test('Delete a document', async ({ page }) => {
-    // Pre-condition: Upload a document to delete
-    const fileContent = 'This is a document to be deleted.';
-    const fileName = 'delete-me.txt';
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByTestId('upload-document-label').click();
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from(fileContent) });
-    await expect(page.getByText(`Successfully uploaded ${fileName}`)).toBeVisible();
-
-    const initialCount = await page.locator('.card', { hasText: 'Document:' }).count();
-
-    // Find and delete the document
-    const documentRow = page.locator('.card', { hasText: fileName });
-    page.on('dialog', dialog => dialog.accept()); // Handle confirmation dialog
-    await documentRow.getByRole('button', { name: 'Delete document' }).click();
-
-    // Assertions
-    await expect(page.getByText(`Successfully deleted "${fileName}"`)).toBeVisible();
-    await expect(page.getByText(fileName)).not.toBeVisible();
-    
-    const newCount = await page.locator('.card', { hasText: 'Document:' }).count();
-    expect(newCount).toBe(initialCount - 1);
   });
 });

@@ -1,67 +1,48 @@
 import { useMutation } from '@tanstack/react-query';
 
 // --- TYPE DEFINITIONS ---
-
-// Represents a source chunk used for the research summary
-export interface ResearchSource {
-  id: string;
-  document_id: string;
-  document_title: string;
-  page_number: number;
-  content: string;
+export interface SearchResult {
+  title: string;
+  snippet: string;
+  url: string;
 }
 
-// Represents the complete result of a research query
-export interface ResearchResult {
-  summary: string;
-  sources: ResearchSource[];
+export interface ResearchData {
+  results: SearchResult[];
+  citations: string;
 }
 
-interface ResearchPayload {
+interface ResearchVariables {
   query: string;
-  caseId: string;
+  database: string;
 }
 
-// --- API HELPER FUNCTION ---
+// --- API HELPER FUNCTIONS ---
+const API_BASE_URL = '/api/research';
 
-const performAiResearch = async (payload: ResearchPayload): Promise<ResearchResult> => {
-  const response = await fetch('/api/ai', {
+const performSearch = async (variables: ResearchVariables): Promise<ResearchData> => {
+  const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      task: 'performResearch', // The specific AI task we want to run
-      payload: payload,
-    }),
+    body: JSON.stringify(variables),
   });
-
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to perform research');
+    throw new Error(errorData.error || 'Failed to perform search');
   }
-
   return response.json();
 };
 
 // --- THE CUSTOM HOOK ---
-
-/**
- * Custom hook to manage the state and actions for the legal research feature.
- */
 export function useResearch() {
-  // We use a mutation because performing a search is an action that changes state,
-  // not just a passive data fetch.
-  const researchMutation = useMutation<ResearchResult, Error, ResearchPayload>({ 
-    mutationFn: performAiResearch 
+  const { mutate, isPending, error, data } = useMutation<ResearchData, Error, ResearchVariables>({
+    mutationFn: performSearch,
   });
 
   return {
-    // The `mutate` function to trigger a new research query
-    performResearch: researchMutation.mutate,
-    // The results of the latest query
-    researchResult: researchMutation.data,
-    // The loading state
-    isLoading: researchMutation.isPending,
-    // Any error that occurred
-    error: researchMutation.error,
+    performSearch: mutate,
+    isSearching: isPending,
+    error: error as Error | null,
+    data,
   };
 }

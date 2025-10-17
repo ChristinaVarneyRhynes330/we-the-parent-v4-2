@@ -1,22 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
 
-const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './tests/e2e',
+  timeout: 30 * 1000,
+  expect: {
+    timeout: 5000,
+  },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  
+
+  reporter: [['html', { open: 'never' }]],
+
   use: {
-    baseURL: baseURL,
+    baseURL: 'http://localhost:3001',   // 👈 matches your running app
     trace: 'on-first-retry',
+    video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
 
   projects: [
@@ -28,9 +29,8 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: baseURL,
+    url: 'http://localhost:3001',
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    // This is the key change: always reuse the server if it's already running.
-    reuseExistingServer: true,
   },
 });

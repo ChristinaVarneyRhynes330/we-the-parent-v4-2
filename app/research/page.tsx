@@ -2,44 +2,18 @@
 
 import React, { useState } from 'react';
 import { Search, ExternalLink } from 'lucide-react';
-
-interface SearchResult {
-  title: string;
-  snippet: string;
-  url: string;
-}
+import { useResearch } from '@/hooks/useResearch';
 
 export default function ResearchPage() {
+  const { performSearch, isSearching, data, error } = useResearch();
   const [query, setQuery] = useState('');
   const [database, setDatabase] = useState('google_scholar');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [citations, setCitations] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/research', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, database })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setResults(data.results);
-        setCitations(data.citations);
-      } else {
-        console.error('Search failed:', data.error);
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setLoading(false);
-    }
+    performSearch({ query, database });
   };
 
   return (
@@ -76,22 +50,23 @@ export default function ResearchPage() {
             </div>
             <button
               type="submit"
-              disabled={loading || !query.trim()}
+              disabled={isSearching || !query.trim()}
               className="button-primary flex items-center gap-2"
             >
               <Search className="w-5 h-5" />
-              {loading ? 'Searching...' : 'Search'}
+              {isSearching ? 'Searching...' : 'Search'}
             </button>
           </form>
         </div>
 
         {/* Results */}
-        {results.length > 0 && (
+        {error && <div className="text-red-500">Error: {error.message}</div>}
+        {data && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="card">
               <h2 className="section-subheader">Search Results</h2>
               <div className="space-y-4">
-                {results.map((result, index) => (
+                {data.results.map((result, index) => (
                   <div key={index} className="border-b border-gray-200 pb-4">
                     <h3 className="font-semibold text-charcoal-navy mb-2">{result.title}</h3>
                     <p className="text-sm text-slate-gray mb-2">{result.snippet}</p>
@@ -111,7 +86,7 @@ export default function ResearchPage() {
             <div className="card">
               <h2 className="section-subheader">Bluebook Citations</h2>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <pre className="text-sm whitespace-pre-wrap">{citations}</pre>
+                <pre className="text-sm whitespace-pre-wrap">{data.citations}</pre>
               </div>
             </div>
           </div>

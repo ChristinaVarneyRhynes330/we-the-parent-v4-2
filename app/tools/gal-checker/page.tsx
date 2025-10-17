@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { checkGALConflict } from '@/lib/ai/analysis';
 
 export default function GALConflictCheckerPage() {
   const [name, setName] = useState('');
@@ -14,9 +13,25 @@ export default function GALConflictCheckerPage() {
       return;
     }
     setLoading(true);
-    const conflictResult = await checkGALConflict(name);
-    setResult(conflictResult);
-    setLoading(false);
+    try {
+      const response = await fetch('/api/gal-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check for conflicts');
+      }
+
+      const data = await response.json();
+      setResult(data.result);
+    } catch (err: any) {
+      setResult(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,7 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { NarrativeEntry } from '@/hooks/useNarrative';
 
 test.describe('Narrative Entry Management', () => {
+  // Use a variable to hold the state of the narrative entries for the mock API
+  let narrativeEntries: NarrativeEntry[] = [];
+
   test.beforeEach(async ({ page }) => {
+    // Reset the entries before each test to ensure isolation
+    narrativeEntries = [];
+
     // Mock the API call to get cases
     await page.route('**/api/cases', route => {
       route.fulfill({
@@ -11,23 +18,51 @@ test.describe('Narrative Entry Management', () => {
       });
     });
 
-    // Mock GET and POST requests for narrative entries
+    // Mock GET and POST requests for the main narrative endpoint
     await page.route('**/api/narrative', async route => {
       if (route.request().method() === 'GET') {
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify([]), // Start with no entries
+          body: JSON.stringify({ entries: narrativeEntries }),
         });
       }
       if (route.request().method() === 'POST') {
         const postData = route.request().postDataJSON();
+        const newEntry: NarrativeEntry = {
+          ...postData,
+          id: `mock-${Date.now()}`,
+          created_at: new Date().toISOString(),
+        } as NarrativeEntry;
+        narrativeEntries.push(newEntry);
         return route.fulfill({
           status: 201,
           contentType: 'application/json',
-          // Return a mock of the created entry
-          body: JSON.stringify([{ ...postData, id: `mock-${Date.now()}` }]),
+          body: JSON.stringify(newEntry), // Return the single created entry
         });
+      }
+    });
+
+    // Mock PATCH and DELETE requests for specific narrative entries
+    await page.route('**/api/narrative/*', async route => {
+      const entryId = route.request().url().split('/').pop() || '';
+
+      if (route.request().method() === 'PATCH') {
+        const updates = route.request().postDataJSON();
+        narrativeEntries = narrativeEntries.map(entry =>
+          entry.id === entryId ? { ...entry, ...updates } : entry
+        );
+        const updatedEntry = narrativeEntries.find(e => e.id === entryId);
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(updatedEntry),
+        });
+      }
+
+      if (route.request().method() === 'DELETE') {
+        narrativeEntries = narrativeEntries.filter(entry => entry.id !== entryId);
+        return route.fulfill({ status: 204 });
       }
     });
 
@@ -37,7 +72,7 @@ test.describe('Narrative Entry Management', () => {
 
     // Navigate to the narrative page before each test
     await page.goto('/narrative');
-    await expect(page.locator('#loading-screen')).toBeHidden({ timeout: 15000 });
+    await expect(page.getByText('Loading entries...')).toBeHidden({ timeout: 15000 });
   });
 
   test('Successfully create a new narrative entry', async ({ page }) => {
@@ -45,7 +80,9 @@ test.describe('Narrative Entry Management', () => {
     await page.getByPlaceholder('Enter a new narrative point...').fill(newEntryText);
     await page.getByRole('button', { name: 'Add Entry' }).click();
 
-    // Assert that the new entry is visible after the mocked API call
+    await page.waitForResponse('**/api/narrative');
+
+    // Assert that the new entry is visible
     await expect(page.getByText(newEntryText)).toBeVisible();
   });
 
@@ -56,13 +93,19 @@ test.describe('Narrative Entry Management', () => {
     // Pre-condition: Create an entry to edit
     await page.getByPlaceholder('Enter a new narrative point...').fill(initialText);
     await page.getByRole('button', { name: 'Add Entry' }).click();
+    await page.waitForResponse('**/api/narrative');
     await expect(page.getByText(initialText)).toBeVisible();
 
-    // Find and edit the entry
-    const entryRow = page.locator('.card', { hasText: initialText });
-    await entryRow.getByTestId('edit-entry-button').click();
-    await entryRow.locator('textarea').fill(updatedText);
-    await entryRow.getByRole('button', { name: 'Save' }).click();
+    // Find the card and click its edit button
+    const entryCard = page.locator('.card', { hasText: initialText });
+    await entryCard.getByTestId('edit-entry-button').click();
+    
+    // The card is now in edit mode. Fill the textarea and save.
+    // The `entryCard` locator is still valid.
+    await entryCard.locator('textarea').fill(updatedText);
+    await entryCard.getByRole('button', { name: 'Save' }).click();
+
+    await page.waitForResponse('**/api/narrative/*');
 
     // Assertions
     await expect(page.getByText(updatedText)).toBeVisible();
@@ -75,6 +118,7 @@ test.describe('Narrative Entry Management', () => {
     // Pre-condition: Create an entry to delete
     await page.getByPlaceholder('Enter a new narrative point...').fill(entryText);
     await page.getByRole('button', { name: 'Add Entry' }).click();
+    await page.waitForResponse('**/api/narrative');
     await expect(page.getByText(entryText)).toBeVisible();
 
     // Find and delete the entry
@@ -82,7 +126,9 @@ test.describe('Narrative Entry Management', () => {
     page.on('dialog', dialog => dialog.accept());
     await entryRow.getByTestId('delete-entry-button').click();
 
+    await page.waitForResponse('**/api/narrative/*');
+
     // Assertions
-    await expect(page.getByText(entryText)).not.toBeVisible();
+    await expect(entryRow).not.toBeVisible();
   });
 });

@@ -3,45 +3,84 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // --- TYPE DEFINITIONS ---
 export interface Document {
   id: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  document_type: string;
-  summary: string;
-  created_at: string;
   case_id: string;
+  file_name: string;
+  file_path: string;
+  file_type: string | null;
+  file_size: number | null;
+  document_type: string | null;
+  summary: string | null;
+  created_at: string;
 }
 
-// For creating a new document record (the file itself is handled separately)
-export type NewDocument = Omit<Document, 'id' | 'created_at'>;
-// For updating a document's metadata
 export type UpdateDocument = Partial<Omit<Document, 'id' | 'case_id' | 'created_at'>>;
 
+interface UploadParams {
+  file: File;
+  caseId: string;
+}
 
 // --- API HELPER FUNCTIONS ---
-// These functions will call our Next.js API routes.
 
-const API_BASE_URL = '/api/documents';
+const API_BASE_URL = '/api';
 
+/**
+ * Fetches all documents for a specific case.
+ */
 const fetchDocuments = async (caseId: string): Promise<Document[]> => {
-  const response = await fetch(`${API_BASE_URL}?case_id=${caseId}`);
-  if (!response.ok) throw new Error('Failed to fetch documents');
+  const response = await fetch(`${API_BASE_URL}/documents?caseId=${caseId}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to fetch documents');
+  }
   const data = await response.json();
   return data.documents;
 };
 
-const deleteDocument = async (documentId: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/${documentId}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error('Failed to delete document');
+/**
+ * Uploads a new file.
+ */
+const uploadDocument = async ({ file, caseId }: UploadParams): Promise<Document> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('caseId', caseId);
+
+  const response = await fetch(`${API_BASE_URL}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'File upload failed');
+  }
+  return response.json();
 };
 
+/**
+ * Deletes a document.
+ */
+const deleteDocument = async (documentId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, { method: 'DELETE' });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to delete document');
+  }
+};
+
+/**
+ * Updates a document's metadata.
+ */
 const updateDocument = async ({ id, ...updates }: { id: string } & UpdateDocument): Promise<Document> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'PUT',
+  const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updates),
+    body: JSON.stringify({ updates }),
   });
-  if (!response.ok) throw new Error('Failed to update document');
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to update document');
+  }
   return response.json();
 };
 
@@ -53,7 +92,6 @@ const updateDocument = async ({ id, ...updates }: { id: string } & UpdateDocumen
  */
 export function useDocuments(caseId: string) {
   const queryClient = useQueryClient();
-
   const queryKey = ['documents', caseId];
 
   // Query to fetch all documents for a given case
@@ -64,14 +102,22 @@ export function useDocuments(caseId: string) {
   } = useQuery<Document[]>({
     queryKey,
     queryFn: () => fetchDocuments(caseId),
-    enabled: !!caseId, // Only run the query if caseId is not null
+    enabled: !!caseId, // Only run the query if caseId is provided
+  });
+
+  // Mutation to upload a new document
+  const uploadDocumentMutation = useMutation({
+    mutationFn: uploadDocument,
+    onSuccess: () => {
+      // When a document is uploaded, invalidate the documents query to refetch the list
+      queryClient.invalidateQueries({ queryKey });
+    },
   });
 
   // Mutation to delete a document
   const deleteDocumentMutation = useMutation({
     mutationFn: deleteDocument,
     onSuccess: () => {
-      // When a document is deleted, invalidate the 'documents' query to refetch the list
       queryClient.invalidateQueries({ queryKey });
     },
   });
@@ -79,21 +125,27 @@ export function useDocuments(caseId: string) {
   // Mutation to update a document's metadata
   const updateDocumentMutation = useMutation({
     mutationFn: updateDocument,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
+    onSuccess: (updatedDocument) => {
+      // Update the specific document in the cache
+      queryClient.setQueryData<Document[]>(queryKey, (oldData) => 
+        oldData ? oldData.map(doc => doc.id === updatedDocument.id ? updatedDocument : doc) : []
+      );
     },
   });
 
   return {
+    // Data
     documents: documents ?? [],
     isLoading,
     error: error as Error | null,
     
     // Mutations
+    uploadDocument: uploadDocumentMutation.mutate,
     deleteDocument: deleteDocumentMutation.mutate,
     updateDocument: updateDocumentMutation.mutate,
 
     // Mutation states
+    isUploading: uploadDocumentMutation.isPending,
     isDeleting: deleteDocumentMutation.isPending,
     isUpdating: updateDocumentMutation.isPending,
   };

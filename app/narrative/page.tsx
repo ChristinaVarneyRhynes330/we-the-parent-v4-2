@@ -66,7 +66,7 @@ export default function NarrativePage() {
         <div className="space-y-4">
           {entries.length > 0 ? (
             entries.map(entry => (
-              <div key={entry.id} className="card">
+              <div key={entry.id} className="card" data-testid={`narrative-entry-${entry.id}`}>
                 {editingEntry?.id === entry.id ? (
                   <div>
                     <textarea

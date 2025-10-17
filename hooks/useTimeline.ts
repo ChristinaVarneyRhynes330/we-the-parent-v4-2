@@ -7,6 +7,9 @@ export interface TimelineEvent {
   date: string;
   title: string;
   description: string;
+  event_type: string;
+  location: string;
+  notes: string;
 }
 
 // Represents the data needed to create a new event (omitting the id)
@@ -56,14 +59,16 @@ const deleteEvent = async (eventId: string): Promise<void> => {
  * Custom hook to manage all data and operations for the timeline feature.
  * It encapsulates TanStack Query logic for fetching, creating, updating, and deleting events.
  */
-export function useTimeline(caseId: string) {
+export function useTimeline(caseId: string | undefined, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient();
+
+  const queryKey = ['events', caseId];
 
   // Query to fetch all events
   const { data: events, isLoading, error } = useQuery<TimelineEvent[]>({ 
-    queryKey: ['events', caseId], 
-    queryFn: () => fetchEvents(caseId),
-    enabled: !!caseId, // Only run the query if caseId is available
+    queryKey, 
+    queryFn: () => fetchEvents(caseId!),
+    enabled: options?.enabled ?? !!caseId, // Only run the query if caseId is available
   });
 
   // Mutation to add a new event
@@ -71,7 +76,7 @@ export function useTimeline(caseId: string) {
     mutationFn: createEvent,
     onSuccess: () => {
       // When a new event is added, invalidate the 'events' query to refetch the list
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -79,7 +84,7 @@ export function useTimeline(caseId: string) {
   const updateEventMutation = useMutation({
     mutationFn: updateEvent,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -87,7 +92,7 @@ export function useTimeline(caseId: string) {
   const deleteEventMutation = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

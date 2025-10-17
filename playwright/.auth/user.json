@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3001",
+      "localStorage": [
+        {
+          "name": "sb-qmtfopxqlbgfsgzuatbf-auth-token",
+          "value": "{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI3ZTZhNDBkMC0xNDYxLTRmYWMtYTJhMC0yOGY5OGE2NDBlMWMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzYwNTI5MzAwLCJpYXQiOjE3NjA1MjU3MDAsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzYwNTI1NzAwfV0sInNlc3Npb25faWQiOiIyNDhjMDc5NC1iZTZjLTRmNjMtYjRiZS1mN2I5MzgyMWUzMzUiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.INS19l10hY6dLeiw8_mIm92W1iheQtnAdXVBp0nXqSQ\",\"token_type\":\"bearer\",\"expires_in\":3600,\"expires_at\":1760529300,\"refresh_token\":\"23twud57e3pj\",\"user\":{\"id\":\"7e6a40d0-1461-4fac-a2a0-28f98a640e1c\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"test@example.com\",\"email_confirmed_at\":\"2025-10-15T08:34:28.678439Z\",\"phone\":\"\",\"confirmed_at\":\"2025-10-15T08:34:28.678439Z\",\"last_sign_in_at\":\"2025-10-15T10:55:00.350235453Z\",\"app_metadata\":{\"provider\":\"email\",\"providers\":[\"email\"]},\"user_metadata\":{\"email_verified\":true},\"identities\":[{\"identity_id\":\"56c79399-7e91-44f7-9163-1cfea4b47859\",\"id\":\"7e6a40d0-1461-4fac-a2a0-28f98a640e1c\",\"user_id\":\"7e6a40d0-1461-4fac-a2a0-28f98a640e1c\",\"identity_data\":{\"email\":\"test@example.com\",\"email_verified\":false,\"phone_verified\":false,\"sub\":\"7e6a40d0-1461-4fac-a2a0-28f98a640e1c\"},\"provider\":\"email\",\"last_sign_in_at\":\"2025-10-15T08:34:28.60674Z\",\"created_at\":\"2025-10-15T08:34:28.607665Z\",\"updated_at\":\"2025-10-15T08:34:28.607665Z\",\"email\":\"test@example.com\"}],\"created_at\":\"2025-10-15T08:34:28.531324Z\",\"updated_at\":\"2025-10-15T10:55:00.391585Z\",\"is_anonymous\":false},\"weak_password\":null}"
+        }
+      ]
+    }
+  ]
+}

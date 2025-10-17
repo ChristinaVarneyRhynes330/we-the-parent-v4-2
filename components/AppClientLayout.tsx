@@ -11,23 +11,18 @@ export default function AppClientLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This timer simulates a loading period and will hide the loading screen.
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1200);
-
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <body className="font-body antialiased bg-warm-ivory text-charcoal-navy overflow-hidden">
+    <body className="font-body antialiased bg-warm-ivory text-charcoal-navy">
       {loading && (
-        <div
-          id="loading-screen"
-          className="fixed inset-0 bg-charcoal-navy z-50 flex items-center justify-center transition-opacity duration-500 ease-out"
-        >
+        <div className="fixed inset-0 bg-charcoal-navy z-50 flex items-center justify-center transition-opacity duration-500">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-brand rounded-full flex items-center justify-center mb-4 animate-bounce-soft">
+            <div className="w-16 h-16 bg-gradient-brand rounded-full flex items-center justify-center mb-4 animate-bounce-soft mx-auto">
               <div className="w-8 h-8 bg-white rounded-full opacity-90"></div>
             </div>
             <h1 className="text-white font-header text-xl mb-2">We The Parent™</h1>
@@ -40,13 +35,18 @@ export default function AppClientLayout({
 
       <div className="flex h-screen w-full">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full">{children}</div>
+        
+        {/* Main Content - Mobile Optimized */}
+        <main className="flex-1 overflow-y-auto lg:ml-64">
+          <div className="min-h-full pt-16 lg:pt-0">
+            {children}
+          </div>
         </main>
       </div>
 
+      {/* Development Breakpoint Indicator */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-charcoal-navy text-white px-2 py-1 rounded text-xs font-mono z-50">
+        <div className="fixed bottom-4 right-4 bg-charcoal-navy text-white px-2 py-1 rounded text-xs font-mono z-50 shadow-lg">
           <span className="sm:hidden">xs</span>
           <span className="hidden sm:inline md:hidden">sm</span>
           <span className="hidden md:inline lg:hidden">md</span>

@@ -1,9 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
+import { createSSRClient } from '@/lib/supabase/server';
 
 // GET handler to fetch all children for the case
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createSSRClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const case_id = searchParams.get('case_id');
 
@@ -11,7 +18,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'case_id is required' }, { status: 400 });
     }
 
-    const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('children')
       .select('*')
@@ -29,6 +35,8 @@ export async function GET(request: NextRequest) {
 // POST handler to create a new child record
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createSSRClient();
+
     const body = await request.json();
     const { name, date_of_birth, case_id, ...otherFields } = body;
 
@@ -38,7 +46,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('children')
       .insert({

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Download, Clipboard, Book, ChevronDown } from 'lucide-react';
 import { useCase } from '@/contexts/CaseContext'; // Import the useCase hook
+import { useDraft } from '@/hooks/useDraft'; // Import the useDraft hook
 
 // Mock data for document templates
 const documentTemplates = [
@@ -14,56 +15,33 @@ const documentTemplates = [
 
 export default function DraftPage() {
   const { activeCase } = useCase(); // Get the active case
+  const { generateDraft, isGenerating, draft, error } = useDraft();
   const [selectedTemplate, setSelectedTemplate] = useState(documentTemplates[0].id);
   const [userInstructions, setUserInstructions] = useState(''); // Add state for user instructions
-  const [generatedDraft, setGeneratedDraft] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerateDraft = async () => {
+  const handleGenerateDraft = () => {
     if (!activeCase) {
       alert('Please select a case first.');
       return;
     }
 
-    setIsGenerating(true);
-    setGeneratedDraft('');
-
-    try {
-      const response = await fetch('/api/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: selectedTemplate,
-          caseId: activeCase.id,
-          userInstructions: userInstructions,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate draft.');
-      }
-
-      const data = await response.json();
-      setGeneratedDraft(data.draft);
-    } catch (error: any) {
-      console.error('Error generating draft:', error);
-      setGeneratedDraft(`// An error occurred: ${error.message}`);
-    } finally {
-      setIsGenerating(false);
-    }
+    generateDraft({ 
+      templateId: selectedTemplate, 
+      caseId: activeCase.id, 
+      userInstructions 
+    });
   };
 
   const handleCopyToClipboard = () => {
-    if (generatedDraft) {
-      navigator.clipboard.writeText(generatedDraft);
+    if (draft) {
+      navigator.clipboard.writeText(draft);
       alert('Draft copied to clipboard!');
     }
   };
 
   const handleDownload = () => {
-    if (generatedDraft) {
-      const blob = new Blob([generatedDraft], { type: 'text/plain' });
+    if (draft) {
+      const blob = new Blob([draft], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -137,7 +115,7 @@ export default function DraftPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyToClipboard}
-                disabled={!generatedDraft || isGenerating}
+                disabled={!draft || isGenerating}
                 className="button-secondary p-2"
                 title="Copy to Clipboard"
               >
@@ -145,7 +123,7 @@ export default function DraftPage() {
               </button>
               <button
                 onClick={handleDownload}
-                disabled={!generatedDraft || isGenerating}
+                disabled={!draft || isGenerating}
                 className="button-secondary p-2"
                 title="Download as .txt"
               >
@@ -164,7 +142,7 @@ export default function DraftPage() {
           ) : (
             <textarea
               readOnly
-              value={generatedDraft}
+              value={draft || error?.message || ''}
               placeholder="Your generated document will appear here..."
               className="w-full h-96 p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm text-charcoal-navy focus:ring-brand focus:border-brand"
             />

@@ -1,100 +1,64 @@
+// FILE: app/documents/page.tsx
+// COMPLETE REPLACEMENT - Mobile optimized, works reliably
+
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { FileText, Upload, Search, Filter, Download, Eye, Trash2, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
-import DocumentPreview from '@/components/DocumentPreview';
-import { useDocuments, Document } from '@/hooks/useDocuments';
+import React, { useState, useEffect } from 'react';
+import { FileText, Upload, Trash2, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useCase } from '@/contexts/CaseContext';
 
-const DOCUMENT_TYPES = {
-  MOTION: 'Motion',
-  EVIDENCE: 'Evidence',
-  COURT_ORDER: 'Court Order',
-  AFFIDAVIT: 'Affidavit',
-  LETTER: 'Letter',
-  OTHER: 'Other'
-};
-
-interface UploadStatus {
-  uploading: boolean;
-  progress: number;
-  message: string;
-  type: 'success' | 'error' | 'info';
+interface Document {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  document_type: string;
+  summary: string;
+  created_at: string;
 }
 
 export default function DocumentsPage() {
-  const queryClient = useQueryClient();
   const { activeCase } = useCase();
-  const {
-    documents,
-    isLoading,
-    error: documentsError,
-    deleteDocument
-  } = useDocuments(activeCase?.id || '');
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
-    uploading: false,
-    progress: 0,
-    message: '',
-    type: 'info'
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (documentsError) {
-      setError(documentsError.message);
+    if (activeCase) {
+      fetchDocuments();
     }
-  }, [documentsError]);
+  }, [activeCase]);
 
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+  const fetchDocuments = async () => {
+    if (!activeCase) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/documents?case_id=${activeCase.id}`);
+      const data = await response.json();
+      setDocuments(data.documents || []);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      showMessage('error', 'Failed to load documents');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
     if (!files || !activeCase) return;
 
-    event.target.value = '';
+    e.target.value = '';
 
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
-    
-    const fileArray = Array.from(files);
-
-    for (const file of fileArray) {
-      if (file.size > maxFileSize) {
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: `File "${file.name}" is too large. Maximum size is 10MB.`, // Corrected escaping for double quotes within template literal
-          type: 'error'
-        });
-        return;
+    for (const file of Array.from(files)) {
+      if (file.size > 10 * 1024 * 1024) {
+        showMessage('error', `${file.name} is too large (max 10MB)`);
+        continue;
       }
-      
-      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-      if (!allowedTypes.includes(fileExtension)) {
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: `File type not supported. Allowed types: ${allowedTypes.join(', ')}`,
-          type: 'error'
-        });
-        return;
-      }
-    }
 
-    for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
-      
-      setUploadStatus({
-        uploading: true,
-        progress: Math.round((i / fileArray.length) * 50),
-        message: `Processing ${file.name}...`,
-        type: 'info'
-      });
-
+      setUploading(true);
       const formData = new FormData();
       formData.append('file', file);
       formData.append('caseId', activeCase.id);
@@ -105,95 +69,45 @@ export default function DocumentsPage() {
           body: formData,
         });
 
-        setUploadStatus({
-          uploading: true,
-          progress: Math.round(((i + 0.5) / fileArray.length) * 100),
-          message: `Analyzing ${file.name}...`,
-          type: 'info'
-        });
-
         const data = await response.json();
         
         if (response.ok) {
-          queryClient.invalidateQueries({ queryKey: ['documents', activeCase.id] });
-          setUploadStatus({
-            uploading: false,
-            progress: 100,
-            message: `Successfully uploaded ${file.name}`,
-            type: 'success'
-          });
+          showMessage('success', `${file.name} uploaded successfully`);
+          await fetchDocuments();
         } else {
-          throw new Error(data.error || 'Upload failed');
+          showMessage('error', data.error || 'Upload failed');
         }
-      } catch (error: any) {
-        console.error('Upload error:', error);
-        console.log('Upload error object:', JSON.stringify(error, null, 2));
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: `Failed to upload ${file.name}: ${error.message}`,
-          type: 'error'
-        });
-        return; // Stop processing remaining files on error
+      } catch (error) {
+        showMessage('error', `Failed to upload ${file.name}`);
+      } finally {
+        setUploading(false);
       }
     }
   };
 
-  const handleDocumentView = (doc: Document) => {
-    setSelectedDocument(doc);
-    setPreviewOpen(true);
-  };
+  const handleDelete = async (id: string, fileName: string) => {
+    if (!confirm(`Delete ${fileName}?`)) return;
 
-  const handleDocumentDelete = async (documentId: string) => {
-    const doc = documents.find(d => d.id === documentId);
-    if (!doc) return;
-
-    if (!confirm(`Are you sure you want to delete "${doc.file_name}"? This action cannot be undone.`)) { // Corrected escaping for double quotes within template literal
-      return;
-    }
-
-    deleteDocument(documentId, {
-      onSuccess: () => {
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: `Successfully deleted "${doc.file_name}"`, // Corrected escaping for double quotes within template literal
-          type: 'success'
-        });
-        setTimeout(() => {
-          setUploadStatus({ uploading: false, progress: 0, message: '', type: 'info' });
-        }, 3000);
-      },
-      onError: (error) => {
-        setUploadStatus({
-          uploading: false,
-          progress: 0,
-          message: `Failed to delete document: ${error.message}`,
-          type: 'error'
-        });
-      }
-    });
-  };
-
-  const handleDocumentDownload = async (doc: Document) => {
     try {
-      const content = `Document: ${doc.file_name}\nType: ${doc.document_type}\nSummary: ${doc.summary}\nCreated: ${doc.created_at}`;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const response = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+      
+      if (response.ok) {
+        showMessage('success', 'Document deleted');
+        await fetchDocuments();
+      } else {
+        showMessage('error', 'Delete failed');
+      }
     } catch (error) {
-      console.error('Download error:', error);
-      alert('Failed to download document');
+      showMessage('error', 'Delete failed');
     }
   };
 
-  const formatFileSize = (bytes: number) => {
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 5000);
+  };
+
+  const formatSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
@@ -201,297 +115,166 @@ export default function DocumentsPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric', 
-      month: 'short', 
+      month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
-  
-  const getDocTypeColor = (docType: string) => {
-    switch (docType) {
-      case DOCUMENT_TYPES.MOTION: return 'bg-dusty-mauve/10 text-dusty-mauve border-dusty-mauve/20';
-      case DOCUMENT_TYPES.EVIDENCE: return 'bg-terracotta/10 text-terracotta border-terracotta/20';
-      case DOCUMENT_TYPES.COURT_ORDER: return 'bg-garnet/10 text-garnet border-garnet/20';
-      case DOCUMENT_TYPES.AFFIDAVIT: return 'bg-olive-emerald/10 text-olive-emerald border-olive-emerald/20';
-      default: return 'bg-slate-gray/10 text-slate-gray border-slate-gray/20';
-    }
+
+  const getTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      'Motion': 'bg-dusty-mauve/10 text-dusty-mauve',
+      'Evidence': 'bg-terracotta/10 text-terracotta',
+      'Court Order': 'bg-garnet/10 text-garnet',
+      'Affidavit': 'bg-olive-emerald/10 text-olive-emerald',
+    };
+    return colors[type] || 'bg-slate-gray/10 text-slate-gray';
   };
 
-  const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (doc.summary && doc.summary.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFilter = filterType === 'all' || doc.document_type === filterType;
-    return matchesSearch && matchesFilter;
-  });
+  return (
+    <div className="min-h-screen bg-warm-ivory p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-header text-charcoal-navy">Documents</h1>
+          <p className="text-slate-gray mt-2 text-sm md:text-base">
+            Manage your case documents
+          </p>
+        </div>
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-warm-ivory p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-10 bg-gray-200 rounded w-1/3 mb-8"></div>
-            <div className="h-20 bg-gray-200 rounded mb-6"></div>
-            <div className="grid gap-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+        {/* Message Banner */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+            message.type === 'error' 
+              ? 'bg-garnet/10 text-garnet' 
+              : 'bg-olive-emerald/10 text-olive-emerald'
+          }`}>
+            {message.type === 'error' ? (
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+            )}
+            <p className="text-sm">{message.text}</p>
+          </div>
+        )}
+
+        {/* Upload Button */}
+        <div className="mb-6">
+          <label className={`button-primary cursor-pointer flex items-center justify-center gap-2 w-full md:w-auto ${
+            uploading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}>
+            {uploading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-5 h-5" />
+                Upload Document
+              </>
+            )}
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleUpload}
+              disabled={uploading || !activeCase}
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+              multiple
+            />
+          </label>
+        </div>
+
+        {/* Documents List */}
+        {loading ? (
+          <div className="card">
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 bg-gray-200 rounded"></div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <DocumentPreview
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        document={selectedDocument}
-      />
-
-      <div className="min-h-screen bg-warm-ivory p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-4xl font-header text-charcoal-navy">Documents</h1>
-              <p className="text-slate-gray mt-2">Manage your case documents and evidence</p>
-            </div>
-            
-            <div className="flex gap-3">
-              <button
-                disabled={isLoading}
-                className="button-secondary flex items-center gap-2"
-                title="Refresh documents"
-              >
-                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              
-              <label className={`button-primary cursor-pointer flex items-center gap-2 ${uploadStatus.uploading ? 'opacity-50 cursor-not-allowed' : ''}`} data-testid="upload-document-label">
-                <Upload className="w-5 h-5" />
-                {uploadStatus.uploading ? 'Uploading...' : 'Upload Document'}
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={uploadStatus.uploading}
-                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                  multiple
-                />
-              </label>
-            </div>
+        ) : documents.length === 0 ? (
+          <div className="card text-center py-12">
+            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No documents uploaded yet</p>
+            <p className="text-sm text-gray-400 mt-2">Upload your first document to get started</p>
           </div>
-
-          {/* Upload Status */}
-          {(uploadStatus.message || error) && (
-            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${ 
-              uploadStatus.type === 'error' || error 
-                ? 'bg-garnet/10 text-garnet border border-garnet/20' 
-                : uploadStatus.type === 'success' 
-                ? 'bg-olive-emerald/10 text-olive-emerald border border-olive-emerald/20'
-                : 'bg-dusty-mauve/10 text-dusty-mauve border border-dusty-mauve/20'
-            }`}>
-              {uploadStatus.type === 'error' || error ? (
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              ) : uploadStatus.type === 'success' ? (
-                <CheckCircle className="w-5 h-5 flex-shrink-0" />
-              ) : (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current flex-shrink-0"></div>
-              )}
-              
-              <div className="flex-1">
-                <p>{error || uploadStatus.message}</p>
-                {uploadStatus.uploading && uploadStatus.progress > 0 && (
-                  <div className="w-full bg-white/30 rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-current h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadStatus.progress}%` }}
-                    ></div>
-                  </div>
-                )}
-              </div>
-              
-              {(error || uploadStatus.type === 'error') && (
-                <button
-                  onClick={() => {
-                    setError(null);
-                    setUploadStatus({ uploading: false, progress: 0, message: '', type: 'info' });
-                  }}
-                  className="text-current hover:opacity-70"
-                  title="Dismiss"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Search and Filter */}
-          <div className="card mb-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <label htmlFor="document-search" className="sr-only">Search documents</label>
-                <input
-                  type="search"
-                  id="document-search"
-                  placeholder="Search documents by name or summary..."
-                  className="form-input pl-10 w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <label htmlFor="document-filter" className="sr-only">Filter documents by type</label>
-                <select
-                  id="document-filter"
-                  className="form-input pl-10 pr-8"
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <option value="all">All Types ({documents.length})</option>
-                  {Object.values(DOCUMENT_TYPES).map((type) => {
-                    const count = documents.filter(doc => doc.document_type === type).length;
-                    return (
-                      <option key={type} value={type}>{type} ({count})</option>
-                    );
-                  })}
-                </select>
-              </div>
-            </div>
-            
-            {searchTerm && (
-              <div className="mt-3 pt-3 border-t border-gray-200">
-                <p className="text-sm text-slate-gray">
-                  Showing {filteredDocuments.length} of {documents.length} documents
-                  {filteredDocuments.length !== documents.length && (
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="ml-2 text-dusty-mauve hover:text-garnet"
-                    >
-                      Clear search to see all documents
-                    </button>
-                  )}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Documents Grid */}
-          <div className="grid gap-4">
-            {filteredDocuments.length === 0 ? (
-              <div className="card text-center py-12">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                {searchTerm ? (
-                  <div>
-                    <p className="text-gray-500">No documents found matching &quot;{searchTerm}&quot;</p>
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="text-dusty-mauve hover:text-garnet mt-2"
-                    >
-                      Clear search to see all documents
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-gray-500">No documents found</p>
-                    <p className="text-sm text-gray-400 mt-1">Upload your first document to get started.</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              filteredDocuments.map((doc) => (
-                <div key={doc.id} className="card hover:shadow-brand transition-all duration-200 group">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 pr-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <FileText className="w-5 h-5 text-dusty-mauve flex-shrink-0" />
-                        <h3 className="font-semibold text-charcoal-navy truncate flex-1" title={doc.file_name}>
-                          {doc.file_name}
-                        </h3>
-                        <span className={`text-xs px-2 py-1 rounded-full border whitespace-nowrap ${getDocTypeColor(doc.document_type)}`}>
-                          {doc.document_type || 'Uncategorized'}
-                        </span>
-                      </div>
-                      
-                      {doc.summary && (
-                        <p className="text-sm text-slate-gray mb-3 pl-8 line-clamp-2">{doc.summary}</p>
-                      )}
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-500 pl-8">
-                        <span>{formatFileSize(doc.file_size)}</span>
-                        <span>•</span>
-                        <span>{formatDate(doc.created_at)}</span>
-                      </div>
+        ) : (
+          <div className="space-y-4">
+            {documents.map((doc) => (
+              <div key={doc.id} className="card hover:shadow-brand transition-shadow">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-dusty-mauve flex-shrink-0 mt-1" />
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-semibold text-charcoal-navy truncate text-sm md:text-base">
+                        {doc.file_name}
+                      </h3>
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getTypeColor(doc.document_type)}`}>
+                        {doc.document_type}
+                      </span>
                     </div>
                     
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => handleDocumentView(doc)}
-                        className="p-2 text-dusty-mauve hover:bg-dusty-mauve/10 rounded-lg transition-colors" 
-                        title="Preview document"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDocumentDownload(doc)}
-                        className="p-2 text-olive-emerald hover:bg-olive-emerald/10 rounded-lg transition-colors" 
-                        title="Download document"
-                      >
-                        <Download className="w-5 h-5" />
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDocumentDelete(doc.id)}
-                        className="p-2 text-garnet hover:bg-garnet/10 rounded-lg transition-colors" 
-                        title="Delete document"
-                        aria-label="Delete document"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    {doc.summary && (
+                      <p className="text-sm text-slate-gray mb-2 line-clamp-2">
+                        {doc.summary}
+                      </p>
+                    )}
+                    
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
+                      <span>{formatSize(doc.file_size)}</span>
+                      <span>•</span>
+                      <span>{formatDate(doc.created_at)}</span>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Footer Statistics */}
-          {documents.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-header text-charcoal-navy">{documents.length}</p>
-                  <p className="text-sm text-slate-gray">Total Documents</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-header text-charcoal-navy">
-                    {Math.round(documents.reduce((sum, doc) => sum + doc.file_size, 0) / 1048576 * 10) / 10}MB
-                  </p>
-                  <p className="text-sm text-slate-gray">Storage Used</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-header text-charcoal-navy">
-                    {documents.filter(doc => doc.document_type === 'Motion').length}
-                  </p>
-                  <p className="text-sm text-slate-gray">Motions</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-header text-charcoal-navy">
-                    {documents.filter(doc => doc.document_type === 'Evidence').length}
-                  </p>
-                  <p className="text-sm text-slate-gray">Evidence Files</p>
+                  
+                  <button
+                    onClick={() => handleDelete(doc.id, doc.file_name)}
+                    className="p-2 text-garnet hover:bg-garnet/10 rounded-lg transition-colors flex-shrink-0"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Stats Footer */}
+        {documents.length > 0 && (
+          <div className="mt-6 card">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-xl md:text-2xl font-header text-charcoal-navy">
+                  {documents.length}
+                </p>
+                <p className="text-xs md:text-sm text-slate-gray">Total</p>
+              </div>
+              <div>
+                <p className="text-xl md:text-2xl font-header text-charcoal-navy">
+                  {(documents.reduce((sum, doc) => sum + doc.file_size, 0) / 1048576).toFixed(1)}MB
+                </p>
+                <p className="text-xs md:text-sm text-slate-gray">Storage</p>
+              </div>
+              <div>
+                <p className="text-xl md:text-2xl font-header text-charcoal-navy">
+                  {documents.filter(d => d.document_type === 'Motion').length}
+                </p>
+                <p className="text-xs md:text-sm text-slate-gray">Motions</p>
+              </div>
+              <div>
+                <p className="text-xl md:text-2xl font-header text-charcoal-navy">
+                  {documents.filter(d => d.document_type === 'Evidence').length}
+                </p>
+                <p className="text-xs md:text-sm text-slate-gray">Evidence</p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

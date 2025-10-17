@@ -1,93 +1,92 @@
+// FILE: contexts/CaseContext.tsx
+
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { createClient } from '@supabase/supabase-js';
 
-// Define the Case type based on your database schema
-export interface Case {
+// ✅ Initialize Supabase client with env vars
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+type Case = {
   id: string;
-  name: string;
-  case_number: string;
-  // Add any other fields you need from the 'cases' table
-}
+  title: string;
+  description?: string;
+  created_at: string;
+};
 
-interface CaseContextType {
+type CaseContextType = {
   cases: Case[];
-  activeCase: Case | null;
-  setActiveCase: (caseId: string | null) => void;
   loading: boolean;
-  refetchCases: () => void;
-}
+  error: string | null;
+  refreshCases: () => Promise<void>;
+};
 
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
-export function CaseProvider({ children, mockedCase }: { children: ReactNode, mockedCase?: Case | null }) {
+export function CaseProvider({ children }: { children: ReactNode }) {
   const [cases, setCases] = useState<Case[]>([]);
-  const [activeCase, setActiveCaseState] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCases = useCallback(async () => {
-    if (mockedCase) return;
-    setLoading(true);
     try {
-      const response = await fetch('/api/cases');
-      if (!response.ok) {
-        throw new Error('Failed to fetch cases');
-      }
-      const data = await response.json();
-      const fetchedCases = data.cases || [];
-      setCases(fetchedCases);
+      setLoading(true);
+      setError(null);
 
-      const storedCaseId = localStorage.getItem('activeCaseId');
-      if (storedCaseId) {
-        const foundCase = fetchedCases.find((c: Case) => c.id === storedCaseId);
-        setActiveCaseState(foundCase || (fetchedCases[0] || null));
-      } else if (fetchedCases.length > 0) {
-        setActiveCaseState(fetchedCases[0]);
-        localStorage.setItem('activeCaseId', fetchedCases[0].id);
+      // 👇 Query your "cases" table in Supabase
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error fetching cases:', error.message);
+        setError(error.message);
+        setCases([]);
+      } else {
+        setCases(data || []);
       }
-    } catch (error) {
-      console.error(error);
-      // Handle error state in UI, maybe set cases to an empty array
+    } catch (err: any) {
+      console.error('Unexpected error fetching cases:', err);
+      setError(err?.message || 'Unknown error');
       setCases([]);
     } finally {
       setLoading(false);
     }
-  }, [mockedCase]);
+  }, []);
 
   useEffect(() => {
-    if (mockedCase) {
-      setActiveCaseState(mockedCase);
-      setCases([mockedCase]);
-      setLoading(false);
-    } else {
-      fetchCases();
-    }
-  }, [fetchCases, mockedCase]);
-
-  const setActiveCase = (caseId: string | null) => {
-    if (caseId) {
-      const foundCase = cases.find(c => c.id === caseId);
-      setActiveCaseState(foundCase || null);
-      if (foundCase) {
-        localStorage.setItem('activeCaseId', foundCase.id);
-      }
-    } else {
-      setActiveCaseState(null);
-      localStorage.removeItem('activeCaseId');
-    }
-  };
+    fetchCases();
+  }, [fetchCases]);
 
   return (
-    <CaseContext.Provider value={{ cases, activeCase, setActiveCase, loading, refetchCases: fetchCases }}>
+    <CaseContext.Provider
+      value={{
+        cases,
+        loading,
+        error,
+        refreshCases: fetchCases,
+      }}
+    >
       {children}
     </CaseContext.Provider>
   );
 }
 
-export function useCase() {
+export function useCases() {
   const context = useContext(CaseContext);
-  if (context === undefined) {
-    throw new Error('useCase must be used within a CaseProvider');
+  if (!context) {
+    throw new Error('useCases must be used within a CaseProvider');
   }
   return context;
 }

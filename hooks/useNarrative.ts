@@ -64,21 +64,7 @@ export function useNarrative(caseId: string | undefined) {
 
   const createEntryMutation = useMutation({
     mutationFn: createNarrativeEntry,
-    onMutate: async (newEntry: NewNarrativeEntry) => {
-      await queryClient.cancelQueries({ queryKey });
-      const previousEntries = queryClient.getQueryData<NarrativeEntry[]>(queryKey);
-      const optimisticEntry: NarrativeEntry = {
-        id: `optimistic-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        ...newEntry,
-      };
-      queryClient.setQueryData<NarrativeEntry[]>(queryKey, (old) => [...(old || []), optimisticEntry]);
-      return { previousEntries };
-    },
-    onError: (err, newEntry, context) => {
-      queryClient.setQueryData(queryKey, context?.previousEntries);
-    },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });

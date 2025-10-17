@@ -21,6 +21,9 @@ pnpm-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.development
+.env.staging
+.env.production
 
 # OS / Editor junk
 .DS_Store
@@ -38,3 +41,6 @@ coverage/
 # Test reports
 playwright-report/
 test-results/
+
+# Gemini agent settings
+.gemini/

@@ -1,38 +1,29 @@
 import { NextResponse } from 'next/server';
-import { createSSRClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
+
+const DEMO_USER_ID = 'demo-user-single';
 
 export async function GET() {
-  const supabase = await createSSRClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    const supabase = createServiceClient();
+    
     const { data, error } = await supabase
       .from('cases')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', DEMO_USER_ID)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    return NextResponse.json({ cases: data });
+    return NextResponse.json({ cases: data || [] });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  const supabase = await createSSRClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    const supabase = createServiceClient();
     const { name, case_number } = await request.json();
 
     if (!name) {
@@ -44,7 +35,7 @@ export async function POST(request: Request) {
       .insert({
         name,
         case_number,
-        user_id: user.id,
+        user_id: DEMO_USER_ID,
       })
       .select()
       .single();
