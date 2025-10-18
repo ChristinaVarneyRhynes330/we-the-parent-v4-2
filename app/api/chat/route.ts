@@ -1,5 +1,5 @@
 // FILE: app/api/chat/route.ts
-// Replace the entire file with this fixed version
+// UPDATED - Improved RAG context retrieval with better error handling
 
 import { createServiceClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -25,18 +25,19 @@ export async function POST(req: NextRequest) {
       const extractor = await pipeline('feature-extraction', 'Xenova/gte-small');
       const output = await extractor(userQuery, { pooling: 'mean', normalize: true });
       query_embedding = Array.from(output.data);
-      console.log('[Chat API] Generated embedding, length:', query_embedding.length);
+      console.log('[Chat API] Generated query embedding, length:', query_embedding.length);
     } catch (embeddingError) {
       console.error('[Chat API] Embedding generation failed:', embeddingError);
-      // Continue without RAG if embedding fails
       query_embedding = null;
     }
 
     // 2. Try to find relevant document chunks
     let context = '';
+    let sourcesFound = 0;
+
     if (query_embedding) {
       try {
-        // First, get the active case ID from the first case (single user mode)
+        // Get the active case ID from the first case (single user mode)
         const { data: cases } = await supabase
           .from('cases')
           .select('id')
@@ -44,18 +45,23 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (cases) {
+          console.log('[Chat API] Searching documents for case:', cases.id);
+
           const { data: chunks, error: rpcError } = await supabase.rpc('match_document_chunks', {
             p_case_id: cases.id,
             p_query_embedding: query_embedding,
-            p_match_threshold: 0.5, // Lower threshold for better recall
-            p_match_count: 5,
+            p_match_threshold: 0.4, // Lower threshold for better recall
+            p_match_count: 8, // Get more chunks for richer context
           });
 
           if (rpcError) {
             console.error('[Chat API] RPC Error:', rpcError);
           } else if (chunks && chunks.length > 0) {
-            context = chunks.map((c: any) => c.content).join('\n\n');
-            console.log('[Chat API] Found', chunks.length, 'relevant chunks');
+            context = chunks
+              .map((c: any, idx: number) => `[Source ${idx + 1}]\n${c.content}`)
+              .join('\n\n---\n\n');
+            sourcesFound = chunks.length;
+            console.log('[Chat API] Found', sourcesFound, 'relevant chunks');
           } else {
             console.log('[Chat API] No relevant chunks found');
           }
@@ -65,34 +71,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Construct the prompt
-    const systemPrompt = context 
-      ? `You are a helpful legal assistant for Florida juvenile dependency cases. Answer the user's question based on the following context from their case documents. If the answer is not in the context, say so and provide general guidance.
+    // 3. Construct the system prompt based on whether we found context
+    let systemPrompt;
+    
+    if (context && sourcesFound > 0) {
+      systemPrompt = `You are a helpful legal assistant for Florida juvenile dependency cases. Answer the user's question based on the following context from their case documents. If the context doesn't contain enough information to fully answer the question, say so and provide general guidance based on Florida law.
 
-Context from documents:
+IMPORTANT: When referencing information from the context, indicate which source you're using (e.g., "According to Source 1..." or "Based on the documents provided...").
+
+Context from case documents:
 ${context}
 
-Question: ${userQuery}`
-      : `You are a helpful legal assistant for Florida juvenile dependency cases. The user hasn't uploaded any documents yet, so provide general guidance based on Florida law and procedures.
+User question: ${userQuery}`;
+    } else {
+      systemPrompt = `You are a helpful legal assistant for Florida juvenile dependency cases. The user hasn't uploaded any relevant documents yet, or their question isn't related to their uploaded documents. Provide general guidance based on Florida law and juvenile dependency procedures.
 
-Question: ${userQuery}`;
+IMPORTANT: Remind the user that you don't have access to their specific case documents for this query, but you can provide general legal information.
 
-    // 4. Create new messages array
-    const newMessages = [
-      { role: 'system', content: 'You are a helpful legal assistant specializing in Florida juvenile dependency law. Provide accurate, helpful information while reminding users you are not a licensed attorney.' },
-      ...messages.slice(0, -1),
-      { role: 'user', content: systemPrompt },
+User question: ${userQuery}`;
+    }
+
+    // 4. Create messages array for the AI
+    const aiMessages = [
+      { 
+        role: 'system' as const, 
+        content: 'You are a helpful legal assistant specializing in Florida juvenile dependency law. Provide accurate, helpful information while reminding users you are not a licensed attorney and they should consult with legal counsel for specific advice.' 
+      },
+      ...messages.slice(0, -1), // Include conversation history
+      { role: 'user' as const, content: systemPrompt },
     ];
 
-    console.log('[Chat API] Calling OpenAI with context length:', context.length);
+    console.log('[Chat API] Calling OpenAI with', sourcesFound, 'context sources');
 
     // 5. Stream the response
     const result = await streamText({
       model: openai('gpt-4o'),
-      messages: newMessages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
+      messages: aiMessages,
       temperature: 0.7,
       maxTokens: 1000,
     });
@@ -102,7 +116,10 @@ Question: ${userQuery}`;
   } catch (error) {
     console.error('[Chat API] Fatal error:', error);
     return NextResponse.json(
-      { error: 'Failed to process chat message. Please try again.' },
+      { 
+        error: 'Failed to process chat message. Please try again.',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
