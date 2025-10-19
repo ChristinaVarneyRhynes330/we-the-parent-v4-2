@@ -1,20 +1,70 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { checkGALConflict } from '@/lib/ai/analysis';
-import { createSSRClient } from '@/lib/supabase/server';
+// File: app/api/gal-check/route.ts
 
-export async function POST(request: NextRequest) {
-  const supabase = await createSSRClient();
-  try {
-    const { name } = await request.json();
+import { NextRequest, NextResponse } from 'next/server';
+import { ApiResponse } from '@/types'; 
 
-    if (!name) {
-      return NextResponse.json({ error: 'Missing name' }, { status: 400 });
+// Define a simple structure for the legal report
+interface GalReport {
+    flagged: boolean;
+    citation: string;
+    analysis: string;
+}
+
+/**
+ * Mocks the AI cross-referencing function for GAL duties.
+ * This simulates the core intelligence of Feature 11.
+ */
+async function runGalAccountabilityCheck(statement: string): Promise<GalReport> {
+    // Simulate AI thinking time
+    await new Promise(resolve => setTimeout(resolve, 1200)); 
+
+    const lowerStatement = statement.toLowerCase();
+
+    // --- MOCK LOGIC: FLAG COMMON ISSUES ---
+    if (lowerStatement.includes('did not interview') || lowerStatement.includes('failed to investigate')) {
+        return {
+            flagged: true,
+            citation: 'Rule 8.300(b)(3)(A) & (C), Fla. R. Juv. P.',
+            analysis: "FLAGGED: The GAL has a duty to conduct an independent investigation, which includes interviewing witnesses and reviewing documents. A failure to investigate suggests a breach of duty. Use the cited rule for your objection."
+        };
+    }
+    
+    if (lowerStatement.includes('biased') || lowerStatement.includes('only spoke to') || lowerStatement.includes('only relied on')) {
+        return {
+            flagged: true,
+            citation: 'Standard 4, Florida Guardian ad Litem Program.',
+            analysis: "FLAGGED: GALs must remain objective and non-partisan, gathering information from all relevant sources, not just one side. Note this bias for your cross-examination or motion."
+        };
     }
 
-    const conflictResult = await checkGALConflict(name);
-    
-    return NextResponse.json({ result: conflictResult });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    // Default successful outcome or non-actionable statement
+    return {
+        flagged: false,
+        citation: 'N/A',
+        analysis: "OK: The statement appears compliant with the core legal duties of a Guardian ad Litem. Continue monitoring their actions."
+    };
+}
+
+/**
+ * Handles the POST request from the client to check a GAL statement.
+ */
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<GalReport>>> {
+    try {
+        const { statement } = await req.json();
+
+        if (!statement) {
+            return NextResponse.json({ success: false, error: 'Missing GAL statement for analysis.' }, { status: 400 });
+        }
+
+        const report = await runGalAccountabilityCheck(statement);
+
+        return NextResponse.json({ success: true, data: report });
+
+    } catch (error) {
+        console.error("GAL Check API Error:", error);
+        return NextResponse.json(
+            { success: false, error: 'An unexpected error occurred during the GAL check analysis.' },
+            { status: 500 }
+        );
+    }
 }

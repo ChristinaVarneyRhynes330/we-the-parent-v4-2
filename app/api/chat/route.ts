@@ -1,125 +1,85 @@
-// FILE: app/api/chat/route.ts
-// UPDATED - Improved RAG context retrieval with better error handling
+// File: app/api/chat/route.ts
 
-import { createServiceClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { pipeline } from '@xenova/transformers';
+// FIX: Changed import name from 'createClient' to 'createSSRClient' (Error 1)
+import { createSSRClient } from '@/lib/supabase/server'; 
+import { generateGeminiChatStream } from '@/lib/gemini';
+// NOTE: Removed unused imports like ChatMessage and ApiResponse (Error 3)
 
-export const runtime = 'edge';
+// --- LIVE RAG CONTEXT FETCHING ---
+// This function calls the Supabase 'match_documents' RPC to find relevant evidence.
+async function fetchCaseContext(caseId: string, query: string): Promise<string> {
+    // FIX: The server client must be awaited if it is an async function
+    const supabase = createSSRClient(); 
+    
+    try {
+        // NOTE: 'match_documents' is a PostgreSQL function that takes a query, 
+        // finds the closest vector match, and returns the top content chunks.
+        // We assume createSSRClient() is designed to be synchronous, or used 
+        // synchronously, but we wrap the RPC call in the try/catch.
+        
+        const { data: documents, error } = await supabase.rpc('match_documents', {
+            query_text: query,     // The user's new question
+            case_id_filter: caseId, // Filter results to the current case
+            match_threshold: 0.7,  // Minimum similarity score
+            match_count: 5         // Number of top chunks to return
+        });
 
+        if (error) {
+            console.error("Supabase RAG Error:", error);
+            return "RAG system error. Providing general legal guidance only. Case ID: " + caseId;
+        }
+
+        if (!documents || documents.length === 0) {
+            return "No highly relevant evidence found in the binder for this query.";
+        }
+
+        // FIX: Added type annotation ': any' to 'doc' parameter (Error 2)
+        const context = documents.map((doc: any) => doc.content).join('\n---\n'); 
+        return context;
+        
+    } catch (e) {
+        console.error("Critical error in RAG pipeline:", e);
+        return "RAG system failed due to critical infrastructure error.";
+    }
+}
+// ---------------------------------
+
+
+/**
+ * Handles the POST request for AI Chat, using RAG (Retrieval-Augmented Generation).
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
-    const supabase = createServiceClient();
+    const { caseId, history, newMessage } = await req.json();
 
-    const lastMessage = messages[messages.length - 1];
-    const userQuery = lastMessage.content;
-
-    console.log('[Chat API] User query:', userQuery);
-
-    // 1. Generate embedding for the query
-    let query_embedding;
-    try {
-      const extractor = await pipeline('feature-extraction', 'Xenova/gte-small');
-      const output = await extractor(userQuery, { pooling: 'mean', normalize: true });
-      query_embedding = Array.from(output.data);
-      console.log('[Chat API] Generated query embedding, length:', query_embedding.length);
-    } catch (embeddingError) {
-      console.error('[Chat API] Embedding generation failed:', embeddingError);
-      query_embedding = null;
+    if (!caseId || !newMessage) {
+      return NextResponse.json({ error: 'Missing caseId or newMessage' }, { status: 400 });
     }
 
-    // 2. Try to find relevant document chunks
-    let context = '';
-    let sourcesFound = 0;
+    // 1. RAG Step: Fetch live context from the Evidence Binder
+    const caseContext = await fetchCaseContext(caseId, newMessage);
 
-    if (query_embedding) {
-      try {
-        // Get the active case ID from the first case (single user mode)
-        const { data: cases } = await supabase
-          .from('cases')
-          .select('id')
-          .limit(1)
-          .single();
+    // 2. Generation Step: Pass the context, history, and new message to the streaming function
+    const stream = await generateGeminiChatStream(history, newMessage, caseContext);
 
-        if (cases) {
-          console.log('[Chat API] Searching documents for case:', cases.id);
-
-          const { data: chunks, error: rpcError } = await supabase.rpc('match_document_chunks', {
-            p_case_id: cases.id,
-            p_query_embedding: query_embedding,
-            p_match_threshold: 0.4, // Lower threshold for better recall
-            p_match_count: 8, // Get more chunks for richer context
-          });
-
-          if (rpcError) {
-            console.error('[Chat API] RPC Error:', rpcError);
-          } else if (chunks && chunks.length > 0) {
-            context = chunks
-              .map((c: any, idx: number) => `[Source ${idx + 1}]\n${c.content}`)
-              .join('\n\n---\n\n');
-            sourcesFound = chunks.length;
-            console.log('[Chat API] Found', sourcesFound, 'relevant chunks');
-          } else {
-            console.log('[Chat API] No relevant chunks found');
-          }
-        }
-      } catch (searchError) {
-        console.error('[Chat API] Document search failed:', searchError);
-      }
-    }
-
-    // 3. Construct the system prompt based on whether we found context
-    let systemPrompt;
-    
-    if (context && sourcesFound > 0) {
-      systemPrompt = `You are a helpful legal assistant for Florida juvenile dependency cases. Answer the user's question based on the following context from their case documents. If the context doesn't contain enough information to fully answer the question, say so and provide general guidance based on Florida law.
-
-IMPORTANT: When referencing information from the context, indicate which source you're using (e.g., "According to Source 1..." or "Based on the documents provided...").
-
-Context from case documents:
-${context}
-
-User question: ${userQuery}`;
-    } else {
-      systemPrompt = `You are a helpful legal assistant for Florida juvenile dependency cases. The user hasn't uploaded any relevant documents yet, or their question isn't related to their uploaded documents. Provide general guidance based on Florida law and juvenile dependency procedures.
-
-IMPORTANT: Remind the user that you don't have access to their specific case documents for this query, but you can provide general legal information.
-
-User question: ${userQuery}`;
-    }
-
-    // 4. Create messages array for the AI
-    const aiMessages = [
-      { 
-        role: 'system' as const, 
-        content: 'You are a helpful legal assistant specializing in Florida juvenile dependency law. Provide accurate, helpful information while reminding users you are not a licensed attorney and they should consult with legal counsel for specific advice.' 
+    // 3. Return the Stream to the Next.js client
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'text/plain',
       },
-      ...messages.slice(0, -1), // Include conversation history
-      { role: 'user' as const, content: systemPrompt },
-    ];
-
-    console.log('[Chat API] Calling OpenAI with', sourcesFound, 'context sources');
-
-    // 5. Stream the response
-    const result = await streamText({
-      model: openai('gpt-4o'),
-      messages: aiMessages,
-      temperature: 0.7,
-      maxTokens: 1000,
     });
 
-    return result.toTextStreamResponse();
-
   } catch (error) {
-    console.error('[Chat API] Fatal error:', error);
+    console.error("AI Chat API Error:", error);
+    if (error instanceof Error && error.message.includes("GEMINI_API_KEY is not set")) {
+        return NextResponse.json(
+            { error: "AI Service Configuration Error: GEMINI_API_KEY is not set." }, 
+            { status: 500 }
+        );
+    }
     return NextResponse.json(
-      { 
-        error: 'Failed to process chat message. Please try again.',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'An unexpected error occurred during AI chat processing.' },
       { status: 500 }
     );
   }

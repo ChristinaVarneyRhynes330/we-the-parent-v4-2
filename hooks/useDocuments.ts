@@ -1,18 +1,9 @@
+// File: hooks/useDocuments.ts
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Document, UploadedDoc } from '@/types'; 
 
 // --- TYPE DEFINITIONS ---
-export interface Document {
-  id: string;
-  case_id: string;
-  file_name: string;
-  file_path: string;
-  file_type: string | null;
-  file_size: number | null;
-  document_type: string | null;
-  summary: string | null;
-  created_at: string;
-}
-
 export type UpdateDocument = Partial<Omit<Document, 'id' | 'case_id' | 'created_at'>>;
 
 interface UploadParams {
@@ -97,7 +88,8 @@ export function useDocuments(caseId: string) {
   // Query to fetch all documents for a given case
   const { 
     data: documents, 
-    isLoading, 
+    // FIX: Destructure as isQueryLoading internally
+    isLoading: isQueryLoading, 
     error 
   } = useQuery<Document[]>({
     queryKey,
@@ -136,7 +128,7 @@ export function useDocuments(caseId: string) {
   return {
     // Data
     documents: documents ?? [],
-    isLoading,
+    isLoading: isQueryLoading, // FIX: Export as isLoading
     error: error as Error | null,
     
     // Mutations
@@ -150,3 +142,6 @@ export function useDocuments(caseId: string) {
     isUpdating: updateDocumentMutation.isPending,
   };
 }
+
+// Re-export key types for consumers (e.g., predicate page)
+export { Document, UploadedDoc, UploadParams };

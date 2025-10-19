@@ -1,83 +1,38 @@
+// File: app/layout.tsx
+
 import type { Metadata } from 'next';
-import { DM_Serif_Display, Work_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import '../styles/globals.css';
-import AppClientLayout from '@/components/AppClientLayout'; // Import the new component
+import { CaseProvider } from '@/contexts/CaseContext';
 import Providers from '@/components/Providers';
 
-const dmSerif = DM_Serif_Display({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-header',
-  display: 'swap',
-  fallback: ['Georgia', 'Times New Roman', 'serif'],
-});
-
-const workSans = Work_Sans({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-body',
-  display: 'swap',
-  fallback: ['system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: {
-    default: 'We The Parent™',
-    template: '%s | We The Parent™'
-  },
+  title: 'We The Parent™ | AI Litigation Assistant',
   description: 'AI-Augmented Self-Litigation Ecosystem for Pro Se Parental Defenders in Florida Juvenile Dependency Cases',
-  keywords: ['Florida', 'juvenile dependency', 'pro se', 'legal assistant', 'parental rights', 'family law'],
-  authors: [{ name: 'We The Parent Team' }],
-  creator: 'We The Parent',
-  publisher: 'We The Parent',
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://wetheparent.com',
-    siteName: 'We The Parent™',
-    title: 'We The Parent™ - AI Legal Assistant for Parents',
-    description: 'ZERO COST AI-Augmented Self-Litigation Ecosystem for Pro Se Parental Defenders in Florida Juvenile Dependency Cases',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'We The Parent - AI Legal Assistant',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'We The Parent™ - AI Legal Assistant for Parents',
-    description: 'ZERO COST AI-Augmented Self-Litigation Ecosystem for Pro Se Parental Defenders in Florida',
-    images: ['/twitter-image.png'],
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
+  // --- PWA/Accessibility Metadata (Feature 13) ---
+  applicationName: 'We The Parent',
+  themeColor: '#4c51bf', // Indigo/Blue color theme
   manifest: '/manifest.json',
+  icons: {
+    apple: '/icons/apple-icon.png',
+  },
 };
 
-interface RootLayoutProps {
+export default function RootLayout({
+  children,
+}: Readonly<{
   children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+}>) {
   return (
-    <html lang="en" className={`${dmSerif.variable} ${workSans.variable}`}>
-      <body className="font-body antialiased bg-warm-ivory text-charcoal-navy overflow-hidden">
+    // FIX: Added 'lang' attribute for screen reader compliance (Accessibility)
+    <html lang="en"> 
+      <body className={inter.className}>
         <Providers>
-          <AppClientLayout>{children}</AppClientLayout>
+          <CaseProvider>
+            {children}
+          </CaseProvider>
         </Providers>
       </body>
     </html>

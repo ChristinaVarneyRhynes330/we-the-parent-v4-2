@@ -144,7 +144,7 @@ export interface PredicateEvidenceLink {
 export interface ChatMessage {
   id: string;
   thread_id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'model' | 'system';
   content: string;
   created_at: string;
   source?: string;
@@ -178,9 +178,14 @@ export interface ResearchResult {
 // ============================================
 
 export interface ComplianceIssue {
+  id: string; // <-- ADDED
   severity: 'error' | 'warning';
   message: string;
   ruleId: string;
+  // --- ADDED REQUIRED FIELDS FOR FRONTEND LOGIC ---
+  isCompleted: boolean; // <-- ADDED
+  dueDate: string; // <-- ADDED
+  created_at: string; // <-- ADDED
 }
 
 export interface DraftRequest {
@@ -253,4 +258,14 @@ export interface FormState<T> {
   errors: FormError[];
   isSubmitting: boolean;
   isValid: boolean;
+}
+
+// ============================================
+// LEGAL UTILITY TYPES
+// ============================================
+export interface FoundationScript {
+  id: string;
+  evidenceType: string;
+  flStatute?: string;
+  questions: string[];
 }

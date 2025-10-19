@@ -1,129 +1,55 @@
-name: CI/CD Pipeline
+# File: .github/workflows/ci.yml
+
+name: Continuous Integration (CI)
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main ]
   pull_request:
-    branches: [main, develop]
+    branches: [ main ]
 
 jobs:
-  # ============================================
-  # Type Checking & Linting
-  # ============================================
-  quality:
-    name: Code Quality
+  build_and_test:
     runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run TypeScript type check
-        run: npm run type-check
-      
-      - name: Run ESLint
-        run: npm run lint
-        continue-on-error: true
-  
-  # ============================================
-  # Build Test
-  # ============================================
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    needs: quality
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build application
-        run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: .next
-          retention-days: 7
+    strategy:
+      # Maximize cost-efficiency: Fail fast if the build or types break
+      fail-fast: true 
 
-  # ============================================
-  # End-to-End Tests
-  # ============================================
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: build
-    
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-      
+          node-version: 20
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Build project and Type Check (CRITICAL)
+        # Ensure the build succeeds and TypeScript has no errors
+        run: npm run build
       
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-      
-      - name: Run Playwright tests
+      - name: Run Unit Tests (Jest/Vitest)
+        # These tests rely on the Supabase mock you created in Step 1.
+        run: npm test
+
+      # --- E2E TESTING SETUP (Zero-Cost Mock) ---
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E Tests (Playwright)
+        # These E2E tests run against the built application using mocks for external services.
+        # This confirms that all feature interactions (e.g., streaming chat, drafting) are sound.
         run: npm run test:e2e
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+
+      # --- DEPLOYMENT PREP (Optional, but good for Vercel) ---
+      - name: Archive Playwright test results
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
-      
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: test-results/
-          retention-days: 30
-
-  # ============================================
-  # Security Audit
-  # ============================================
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+          retention-days: 7

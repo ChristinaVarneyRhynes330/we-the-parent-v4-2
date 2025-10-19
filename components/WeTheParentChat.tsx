@@ -1,108 +1,184 @@
+// File: components/WeTheParentChat.tsx
+
 'use client';
 
-import { useRef, useEffect } from 'react';
-import { Bot, User, Send, Loader2, FileText } from 'lucide-react';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { useChat } from 'ai/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChatMessage, ChatThread } from '@/types'; 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+// Dummy data/hook for case context (You would replace this with actual context hook later)
+const MOCK_CASE_ID = 'case-001';
+
+// Initial chat history for context
+const initialMessages: ChatMessage[] = [
+  { 
+    id: 'msg-0', 
+    thread_id: 'thread-001', 
+    role: 'assistant', 
+    content: "Hello! I am We The Parent's AI Assistant, connected to your Evidence Binder. How can I help you prepare for court today?",
+    created_at: new Date().toISOString(),
+    source: 'system'
+  },
+];
 
 export default function WeTheParentChat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, data } = useChat();
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [input, setInput] = useState('');
+  // --- FIX: Corrected syntax error: setIsLoading used twice and extra comma/bracket removed ---
+  const [isLoading, setIsLoading] = useState(false); 
+  // --------------------------------------------------------------------------------------------
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Auto-scroll to the bottom of the chat window
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const getMessagesWithSource = () => {
-    if (!data) return messages;
-
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === 'assistant') {
-        const sourceData = data.find((d: any) => d.source) as { source: string } | undefined;
-        if (sourceData) {
-            lastMessage.source = sourceData.source;
-        }
-    }
-    return messages;
   };
 
-  const displayMessages = getMessagesWithSource();
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      thread_id: 'thread-001', 
+      role: 'user',
+      content: input,
+      created_at: new Date().toISOString(),
+    };
+
+    // Add user message to state
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    // Placeholder for the AI's streaming response, updated in real-time
+    const streamingMessage: ChatMessage = {
+      id: `msg-ai-${Date.now()}`,
+      thread_id: 'thread-001',
+      role: 'assistant',
+      content: '', // Start with empty content
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, streamingMessage]);
+
+    try {
+      // 1. Send request to the new streaming RAG API route
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caseId: MOCK_CASE_ID,
+          history: messages, // Send the full history for context
+          newMessage: userMessage.content,
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error(`API returned ${response.status}: ${await response.text()}`);
+      }
+
+      // 2. Process the Streaming Body
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        const chunk = decoder.decode(value);
+
+        // Update the last message (the streaming one) with the new chunk of text
+        setMessages((prevMessages) => {
+          const lastIndex = prevMessages.length - 1;
+          const updatedMessages = [...prevMessages];
+          updatedMessages[lastIndex].content += chunk;
+          return updatedMessages;
+        });
+
+        // Ensure smooth scrolling happens for the new content
+        scrollToBottom(); 
+      }
+
+    } catch (error) {
+      console.error("Error during AI chat streaming:", error);
+      // Append an error message if the stream fails
+      setMessages((prevMessages) => [
+        ...prevMessages.slice(0, -1), // Remove the unfinished streaming message
+        {
+          id: `msg-err-${Date.now()}`,
+          thread_id: 'thread-001',
+          role: 'assistant',
+          content: `ERROR: Failed to connect to AI service. Please check your API key and network. (${error instanceof Error ? error.message : 'Unknown error'})`,
+          created_at: new Date().toISOString(),
+        } as ChatMessage,
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderMessage = (message: ChatMessage) => {
+    const isUser = message.role === 'user';
+    return (
+      <div 
+        key={message.id} 
+        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
+      >
+        <div 
+          className={`max-w-3/4 p-3 rounded-lg shadow-md ${
+            isUser 
+              ? 'bg-blue-600 text-white rounded-br-none' 
+              : 'bg-white text-gray-800 rounded-tl-none border border-gray-200'
+          }`}
+        >
+          {isUser ? (
+            <p className="font-semibold">You:</p>
+          ) : (
+            <p className="font-semibold text-blue-700">AI Assistant:</p>
+          )}
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="flex flex-col h-full bg-warm-ivory">
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {displayMessages.length === 0 && !isLoading ? (
-          <div className="text-center text-slate-gray">
-            <Bot className="w-12 h-12 mx-auto mb-4" />
-            <h3 className="font-header text-xl text-charcoal-navy">AI Assistant</h3>
-            <p>Ask me anything about your case documents.</p>
-          </div>
-        ) : (
-          displayMessages.map((msg) => (
-            <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-dusty-mauve/20 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-5 h-5 text-dusty-mauve" />
-                </div>
-              )}
-              <div className={`max-w-xl p-4 rounded-lg ${msg.role === 'user' ? 'bg-dusty-mauve text-white' : 'bg-white'}`}>
-                <div className="prose prose-sm max-w-none">
-                  <Markdown remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </Markdown>
-                </div>
-                {msg.role === 'assistant' && (msg as any).source && (
-                  <div className="mt-2 text-xs text-slate-gray flex items-center gap-1 group relative">
-                    <FileText className="w-4 h-4" />
-                    <div className="absolute bottom-full mb-2 w-max bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Source: {(msg as any).source}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {msg.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-slate-gray/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-slate-gray" />
-                </div>
-              )}
-            </div>
-          ))
-        )}
-        {isLoading && messages[messages.length -1]?.role === 'user' && (
-          <div className="flex gap-4 justify-start">
-            <div className="w-8 h-8 rounded-full bg-dusty-mauve/20 flex items-center justify-center flex-shrink-0">
-              <Bot className="w-5 h-5 text-dusty-mauve" />
-            </div>
-            <div className="max-w-xl p-4 rounded-lg bg-white">
-              <div className="flex items-center gap-2 text-slate-gray">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Thinking...</span>
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col h-full bg-gray-50">
+      <header className="p-4 border-b bg-white shadow-sm">
+        <h1 className="text-2xl font-bold text-gray-800">AI Chat Vault (Case: {MOCK_CASE_ID})</h1>
+        <p className="text-sm text-gray-500">Intelligent assistance grounded in your Evidence Binder.</p>
+      </header>
+      
+      {/* Chat Messages Area */}
+      <div className="flex-grow p-4 overflow-y-auto space-y-4">
+        {messages.map(renderMessage)}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-6 border-t border-slate-gray/20 bg-white">
-        <form onSubmit={handleSubmit} className="flex items-center gap-4">
-          <label htmlFor="chat-input" className="sr-only">Your message</label>
-          <input
-            id="chat-input"
-            className="form-input flex-1"
+      {/* Input Area */}
+      <footer className="p-4 border-t bg-white">
+        <form onSubmit={handleSendMessage} className="flex space-x-3">
+          <Input
+            type="text"
             value={input}
-            onChange={handleInputChange}
-            placeholder="Ask about your documents..."
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={isLoading ? "AI is typing..." : "Ask a question about your case..."}
+            disabled={isLoading}
+            className="flex-grow"
           />
-          <button type="submit" className="button-primary p-2" disabled={isLoading} aria-label="Send message">
-            <Send className="w-5 h-5" />
-          </button>
+          <Button 
+            type="submit" 
+            disabled={isLoading || !input.trim()}
+          >
+            {isLoading ? 'Sending...' : 'Send'}
+          </Button>
         </form>
-        <p className="text-xs text-slate-gray mt-2">
-          AI can make mistakes. Consider checking important information.
-        </p>
-      </div>
+      </footer>
     </div>
   );
 }

@@ -1,193 +1,202 @@
+// File: app/transcribe/page.tsx (Full Content Replacement)
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { Scissors, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Mic, Zap, AlertTriangle, Volume2 } from 'lucide-react'; 
 
-// Mock data representing a transcript with word-level timestamps
-const mockTranscript = {
-  words: [
-    { start: 0.5, end: 0.9, text: 'Okay,' },
-    { start: 1.0, end: 1.4, text: 'so' },
-    { start: 1.4, end: 1.7, text: 'the' },
-    { start: 1.7, end: 2.2, text: 'first' },
-    { start: 2.2, end: 2.6, text: 'thing' },
-    { start: 2.6, end: 2.9, text: 'we' },
-    { start: 2.9, end: 3.2, text: 'need' },
-    { start: 3.2, end: 3.5, text: 'to' },
-    { start: 3.5, end: 4.0, text: 'establish' },
-    { start: 4.5, end: 4.8, text: 'is' },
-    { start: 4.8, end: 5.2, text: 'the' },
-    { start: 5.2, end: 5.8, text: 'timeline' },
-    { start: 5.8, end: 6.2, text: 'of' },
-    { start: 6.2, end: 6.8, text: 'events' },
-    { start: 7.2, end: 7.5, text: 'on' },
-    { start: 7.5, end: 7.9, text: 'the' },
-    { start: 7.9, end: 8.3, text: 'night' },
-    { start: 8.3, end: 8.6, text: 'in' },
-    { start: 8.6, end: 9.2, text: 'question.' },
-    { start: 10.1, end: 10.5, text: 'The' },
-    { start: 10.5, end: 11.0, text: 'respondent' },
-    { start: 11.0, end: 11.4, text: 'claims' },
-    { start: 11.4, end: 11.7, text: 'they' },
-    { start: 11.7, end: 12.1, text: 'were' },
-    { start: 12.1, end: 12.5, text: 'at' },
-    { start: 12.5, end: 12.9, text: 'home,' },
-    { start: 13.2, end: 13.5, text: 'but' },
-    { start: 13.5, end: 13.8, text: 'we' },
-    { start: 13.8, end: 14.2, text: 'have' },
-    { start: 14.2, end: 14.8, text: 'evidence' },
-    { start: 14.8, end: 15.1, text: 'to' },
-    { start: 15.1, end: 15.4, text: 'the' },
-    { start: 15.4, end: 16.0, text: 'contrary.' },
-  ],
-};
-
-interface SelectionDetails {
-  text: string;
-  startTime: number | null;
-  endTime: number | null;
+// Define the structure for the immediate real-time response (matching API)
+interface ObjectionFlag {
+    flagged: boolean;
+    type?: 'Hearsay' | 'Lack of Foundation' | 'Irrelevant' | 'Leading';
+    triggerPhrase?: string;
+    scriptSuggestion?: string;
+    // FIX: Added 'analysis' property to satisfy the error fallback (Error 4)
+    analysis?: string; 
 }
 
-interface SavedExcerpt extends SelectionDetails {
-  id: string;
-}
-
-export default function TranscriptionEditorPage() {
-  const transcriptContainerRef = useRef<HTMLDivElement>(null);
-  const [selectionDetails, setSelectionDetails] = useState<SelectionDetails>({ text: '', startTime: null, endTime: null });
-  const [savedExcerpts, setSavedExcerpts] = useState<SavedExcerpt[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = (seconds % 60).toFixed(2);
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.padStart(5, '0')}`;
-  };
-
-  const handleSelection = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-      setSelectionDetails({ text: '', startTime: null, endTime: null });
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const selectedText = selection.toString();
-
-    const startEl = range.startContainer.parentElement?.closest('span[data-start]');
-    const endEl = range.endContainer.parentElement?.closest('span[data-end]');
-
-    if (startEl && endEl) {
-      const startTime = parseFloat(startEl.getAttribute('data-start') || '0');
-      const endTime = parseFloat(endEl.getAttribute('data-end') || '0');
-      setSelectionDetails({ text: selectedText, startTime, endTime });
-    } else {
-      setSelectionDetails({ text: '', startTime: null, endTime: null });
-    }
-  };
-
-  const handleSaveExcerpt = async () => {
-    if (!selectionDetails.text || selectionDetails.startTime === null || selectionDetails.endTime === null) return;
-
-    setIsSaving(true);
-    console.log('Saving excerpt:', selectionDetails);
-
-    // Simulate API call to save the excerpt as evidence
-    // In a real app: await fetch('/api/evidence', { method: 'POST', body: JSON.stringify(...) });
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const newExcerpt: SavedExcerpt = {
-      ...selectionDetails,
-      id: `excerpt-${Date.now()}`,
+export default function RealTimeCourtroomPage() {
+    const [transcript, setTranscript] = useState<string[]>([]);
+    const [inputChunk, setInputChunk] = useState('');
+    const [isListening, setIsListening] = useState(false);
+    const [currentFlag, setCurrentFlag] = useState<ObjectionFlag | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const transcriptEndRef = useRef<HTMLDivElement>(null);
+    
+    // Auto-scroll to the bottom of the transcript window
+    const scrollToBottom = () => {
+        transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    setSavedExcerpts(prev => [newExcerpt, ...prev]);
-    setIsSaving(false);
+    useEffect(() => {
+        scrollToBottom();
+    }, [transcript, currentFlag]);
     
-    // Clear selection
-    window.getSelection()?.removeAllRanges();
-    setSelectionDetails({ text: '', startTime: null, endTime: null });
-  };
+    // --- CORE AI COMMUNICATION LOGIC ---
+    const analyzeChunk = useCallback(async (chunk: string) => {
+        setIsAnalyzing(true);
+        try {
+            const response = await fetch('/api/objection-stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transcript_chunk: chunk }),
+            });
 
-  return (
-    <div className="min-h-screen bg-warm-ivory p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-header text-charcoal-navy">Transcription Editor</h1>
-          <p className="text-slate-gray mt-2">Highlight text to create and save evidence excerpts from your audio.</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Transcript Display */}
-          <div className="lg:col-span-2 card">
-            <h2 className="section-subheader mb-4">Transcript</h2>
-            <div
-              ref={transcriptContainerRef}
-              onMouseUp={handleSelection}
-              className="bg-white border border-gray-200 rounded-lg p-6 max-h-[60vh] overflow-y-auto select-text"
-            >
-              <div className="prose prose-gray max-w-none">
-                {
-                  mockTranscript.words.map((word, index) => (
-                    <span key={index} data-start={word.start} data-end={word.end} className="hover:bg-dusty-mauve/20 transition-colors cursor-pointer">
-                      {index === 0 || new Date(word.start * 1000).getSeconds() !== new Date(mockTranscript.words[index-1].start * 1000).getSeconds() ? (
-                        <span className="font-mono text-xs text-dusty-mauve/80 block select-none">[{formatTime(word.start)}]</span>
-                      ) : ''}
-                      {word.text + ' '}
-                    </span>
-                  ))
+            const data = await response.json();
+            
+            if (response.ok && data.success && data.data) {
+                const flag = data.data as ObjectionFlag;
+                if (flag.flagged) {
+                    setCurrentFlag(flag);
+                } else {
+                    // Clear flag if the new chunk contains no objection
+                    setCurrentFlag(null);
                 }
-              </div>
-            </div>
-          </div>
+            } else {
+                console.error("Analysis failed:", data.error || 'Unknown API error');
+            }
+        } catch (error) {
+            console.error('Network error during analysis:', error);
+            setCurrentFlag({ flagged: false, analysis: "System Error" }); 
+        } finally {
+            setIsAnalyzing(false);
+        }
+    }, []);
 
-          {/* Excerpt Creation and List */}
-          <div className="card self-start">
-            <h2 className="section-subheader mb-4">Create Excerpt</h2>
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[100px]">
-              {selectionDetails.text ? (
-                <div>
-                  <p className="text-sm text-slate-gray italic">&quot;...{selectionDetails.text}...&quot;</p>
-                  <p className="text-xs font-mono text-charcoal-navy mt-2">
-                    Time: {formatTime(selectionDetails.startTime!)} - {formatTime(selectionDetails.endTime!)}
-                  </p>
+    // --- SIMULATED LIVE INPUT ---
+    const handleSendChunk = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!inputChunk.trim()) return;
+
+        // 1. Add chunk to the transcript display
+        setTranscript(prev => [...prev, inputChunk]);
+        
+        // 2. Trigger real-time analysis
+        analyzeChunk(inputChunk);
+
+        // 3. Clear input for the next chunk
+        setInputChunk('');
+    };
+    
+    // --- RENDER FUNCTIONS ---
+    const renderObjectionAlert = () => {
+        if (!currentFlag) return null;
+
+        const { type, scriptSuggestion, triggerPhrase } = currentFlag;
+        const colorClass = 'bg-red-700 border-red-900';
+        
+        return (
+            <div className={`fixed bottom-4 right-4 p-5 rounded-xl shadow-2xl text-white z-50 transition-all duration-300 transform ${colorClass} w-80`}>
+                <div className="flex items-center space-x-3 mb-3">
+                    <Zap className="w-6 h-6 animate-pulse" />
+                    <h3 className="text-xl font-bold">OBJECTION ALERT!</h3>
                 </div>
-              ) : (
-                <p className="text-sm text-slate-gray text-center self-center">Highlight text in the transcript to create an excerpt.</p>
-              )}
+                
+                <p className="font-semibold text-lg">{type}: {triggerPhrase}</p>
+                <div className="mt-3 p-3 bg-red-800 rounded-lg">
+                    <p className="text-sm font-mono">
+                        {scriptSuggestion}
+                    </p>
+                </div>
+                <div className="mt-4 text-center">
+                    <button 
+                        onClick={() => setCurrentFlag(null)} 
+                        className="text-xs font-semibold underline opacity-70 hover:opacity-100"
+                    >
+                        Dismiss Alert
+                    </button>
+                </div>
             </div>
-            <button
-              onClick={handleSaveExcerpt}
-              disabled={!selectionDetails.text || isSaving}
-              className="button-primary w-full mt-4 flex items-center justify-center gap-2"
-            >
-              {isSaving ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                <Scissors className="w-5 h-5" />
-              )}
-              {isSaving ? 'Saving...' : 'Save Excerpt as Evidence'}
-            </button>
+        );
+    };
 
-            <div className="mt-8">
-              <h3 className="section-subheader mb-4">Saved Excerpts</h3>
-              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                {savedExcerpts.length > 0 ? savedExcerpts.map(excerpt => (
-                  <div key={excerpt.id} className="bg-white border rounded-lg p-3">
-                    <p className="text-sm text-charcoal-navy italic">&quot;...{excerpt.text}...&quot;</p>
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-gray mt-2">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatTime(excerpt.startTime!)} - {formatTime(excerpt.endTime!)}</span>
+    return (
+        <div className="min-h-screen bg-gray-900 flex flex-col">
+            {/* Objection Alert */}
+            {renderObjectionAlert()}
+
+            <header className="p-4 bg-gray-800 border-b border-gray-700 text-white">
+                <h1 className="text-3xl font-bold flex items-center gap-3">
+                    <Volume2 className="w-7 h-7 text-red-500" /> Courtroom Execution Center
+                </h1>
+                <p className="text-gray-400 mt-1">Real-Time Transcription & Objection Scripting</p>
+            </header>
+
+            <div className="flex-grow flex">
+                {/* Live Transcript Panel */}
+                <div className="w-2/3 bg-gray-800 p-6 overflow-y-auto border-r border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-200 mb-4">Live Transcript</h2>
+                    <div className="h-[calc(100vh-250px)] overflow-y-auto space-y-3 p-2 bg-gray-900 rounded-lg">
+                        {transcript.length === 0 && (
+                            // FIX: Escaping apostrophes (Error 5)
+                            <p className="text-gray-500 text-center py-10">Start &apos;listening&apos; by sending a transcript chunk below.</p>
+                        )}
+                        {transcript.map((line, index) => (
+                            <p key={index} className="text-gray-300 bg-gray-700 p-2 rounded text-sm whitespace-pre-wrap">
+                                **Witness/Counsel:** {line}
+                            </p>
+                        ))}
+                        <div ref={transcriptEndRef} />
                     </div>
-                  </div>
-                )) : (
-                  <p className="text-sm text-slate-gray">No excerpts saved yet.</p>
-                )}
-              </div>
+                </div>
+
+                {/* Status and Input Panel */}
+                <div className="w-1/3 p-6 bg-gray-900 flex flex-col">
+                    <div className="flex-grow space-y-6">
+                        {/* Status Widget */}
+                        <div className="p-4 bg-gray-800 rounded-lg shadow-xl">
+                            <div className="flex items-center space-x-2">
+                                <Mic className={`w-6 h-6 ${isListening ? 'text-red-500' : 'text-gray-400'}`} />
+                                <h3 className="text-lg font-semibold text-white">Live Monitoring Status</h3>
+                            </div>
+                            <p className={`mt-2 text-sm ${isListening ? 'text-green-400' : 'text-yellow-400'}`}>
+                                {isListening ? 'ACTIVE: Analyzing Audio Stream' : 'INACTIVE: Click below to start'}
+                            </p>
+                            <button 
+                                onClick={() => setIsListening(prev => !prev)}
+                                className={`mt-4 w-full py-2 rounded-lg text-white font-medium transition-colors ${
+                                    isListening ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+                                }`}
+                            >
+                                {isListening ? 'STOP Session' : 'START Court Session'}
+                            </button>
+                        </div>
+                        
+                        {/* AI Status Widget */}
+                         <div className="p-4 bg-gray-800 rounded-lg shadow-xl">
+                            <div className="flex items-center space-x-2">
+                                <AlertTriangle className={`w-6 h-6 ${isAnalyzing ? 'text-yellow-500 animate-spin' : (currentFlag ? 'text-red-500' : 'text-gray-400')}`} />
+                                <h3 className="text-lg font-semibold text-white">AI Objection Analysis</h3>
+                            </div>
+                            <p className="mt-2 text-sm text-gray-400">
+                                {isAnalyzing && 'Processing last chunk for violations...'}
+                                {!isAnalyzing && currentFlag && <span className="text-red-400 font-bold">IMMEDIATE ACTION REQUIRED! ({currentFlag.type})</span>}
+                                {!isAnalyzing && !currentFlag && 'System is clear. Listening for the next event.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Input Simulation Area */}
+                    <form onSubmit={handleSendChunk} className="mt-6 pt-4 border-t border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-200 mb-2">Simulate Live Transcript</h3>
+                        <textarea
+                            value={inputChunk}
+                            onChange={(e) => setInputChunk(e.target.value)}
+                            // FIX: Escaping apostrophes (Error 5)
+                            placeholder="Paste a witness statement here to test the objection system (e.g., 'The case worker said the mother has no interest in attending services...')"
+                            rows={3}
+                            className="w-full bg-gray-700 text-white p-3 rounded-lg resize-none focus:ring-indigo-500 focus:border-indigo-500"
+                            disabled={!isListening}
+                        />
+                        <button
+                            type="submit"
+                            disabled={!isListening || isAnalyzing || !inputChunk.trim()}
+                            className="mt-2 w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-700 disabled:text-gray-500"
+                        >
+                            Send Chunk & Analyze
+                        </button>
+                    </form>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
