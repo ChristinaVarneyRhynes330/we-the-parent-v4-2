@@ -1,25 +1,33 @@
-// File: __tests__/page.test.tsx
+// File: __tests__/page.test.tsx (Full Content Replacement)
 
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import Page from '../app/page'
+// FIX: Import the component using the named style to ensure it resolves correctly
+import * as PageModule from '../app/page'
+import { TestProviders } from './TestProviders'; 
 
-// --- CRITICAL ADDITION: MOCK THE SUPABASE CLIENT ---
-// This tells Jest/Vitest to use the mock file you created:
-// '__mocks__/@/lib/supabase/client.ts'
-jest.mock('@/lib/supabase/client')
-// ----------------------------------------------------
+// Check if the component is a default export, otherwise use the module itself.
+// This solves the 'Element type is invalid' error in Next.js test environments.
+const Page = PageModule.default || PageModule; 
+
+// CRITICAL FIX: MOCK THE CONTEXT TO BYPASS SUPABASE INIT 
+jest.mock('@/contexts/CaseContext'); 
+jest.mock('@/lib/supabase/client');
+
 
 describe('Page', () => {
-  // NOTE: If Page component depends on authentication (which it likely does), 
-  // the mock ensures a successful user object is returned, allowing this test to pass.
   it('renders a heading', () => {
-    render(<Page />)
+    render(
+      <TestProviders>
+        {/* FIX: Ensure the component is rendered with the necessary providers */}
+        <Page />
+      </TestProviders>
+    );
 
     const heading = screen.getByRole('heading', {
       name: /Dashboard/i,
-    })
+    });
 
-    expect(heading).toBeInTheDocument()
-  })
-})
+    expect(heading).toBeInTheDocument();
+  });
+});
