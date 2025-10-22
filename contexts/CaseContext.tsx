@@ -17,8 +17,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 type Case = {
   id: string;
-  title: string; // Adjusted for the Dashboard's expected type
-  name: string; // Keeping the name property from the types file
+  // NOTE: Assuming name/title aliasing for simplicity, as per previous analysis
+  title: string; 
   description?: string;
   created_at: string;
 };
@@ -82,7 +82,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Keep backward compatibility with useCases
+// Export the primary hook used by components
 export function useCases() {
   const context = useContext(CaseContext);
   if (!context) {
@@ -91,7 +91,7 @@ export function useCases() {
   return context;
 }
 
-// CRITICAL FIX: Add the missing export (useCase) that multiple pages rely on (solves 6 warnings)
+// CRITICAL FIX: Add the missing useCase export that pages rely on (solves 6 warnings)
 export function useCase() {
   return useCases();
 }

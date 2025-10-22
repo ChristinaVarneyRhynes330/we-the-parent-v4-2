@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
  * It acts as a controller that validates the incoming request and dispatches
  * it to the correct service function in `lib/ai/analysis.ts`.
  */
-// FIX: Removed the unused 'request: Request' parameter (Solves the build-blocking error)
+// FIX: Removed the unused 'request: Request' parameter to solve the compilation error
 export async function POST() {
   // TODO: This route is disabled until the AI tasks are implemented in @/lib/ai/analysis.ts
   return NextResponse.json({ error: 'This feature is not yet implemented.' }, { status: 501 });

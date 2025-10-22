@@ -5,7 +5,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const supabase = await createSSRClient();
 
   const { id } = params;
-  // FIX: Added line to read the updates from the request body (was missing)
+  // FIX: Added line to read the updates from the request body
   const updates = await req.json(); 
 
 
@@ -23,7 +23,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(data);
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+// FIX: Prefixed req with underscore to suppress 'req is declared but its value is never read'
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = await createSSRClient();
 
   const { id } = params;

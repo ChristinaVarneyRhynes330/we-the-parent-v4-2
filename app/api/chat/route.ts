@@ -1,28 +1,21 @@
-// File: app/api/chat/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
-// FIX: Changed import name from 'createClient' to 'createSSRClient' (Error 1)
 import { createSSRClient } from '@/lib/supabase/server'; 
 import { generateGeminiChatStream } from '@/lib/gemini';
-// NOTE: Removed unused imports like ChatMessage and ApiResponse (Error 3)
+// NOTE: Removed unused imports like ChatMessage and ApiResponse 
+
 
 // --- LIVE RAG CONTEXT FETCHING ---
 // This function calls the Supabase 'match_documents' RPC to find relevant evidence.
 async function fetchCaseContext(caseId: string, query: string): Promise<string> {
-    // FIX: The server client must be awaited if it is an async function
-    const supabase = createSSRClient(); 
+    // CRITICAL FIX: Add 'await' here because createSSRClient is an async function (solves the error)
+    const supabase = await createSSRClient(); 
     
     try {
-        // NOTE: 'match_documents' is a PostgreSQL function that takes a query, 
-        // finds the closest vector match, and returns the top content chunks.
-        // We assume createSSRClient() is designed to be synchronous, or used 
-        // synchronously, but we wrap the RPC call in the try/catch.
-        
         const { data: documents, error } = await supabase.rpc('match_documents', {
-            query_text: query,     // The user's new question
-            case_id_filter: caseId, // Filter results to the current case
-            match_threshold: 0.7,  // Minimum similarity score
-            match_count: 5         // Number of top chunks to return
+            query_text: query,     
+            case_id_filter: caseId, 
+            match_threshold: 0.7,  
+            match_count: 5         
         });
 
         if (error) {
@@ -34,7 +27,6 @@ async function fetchCaseContext(caseId: string, query: string): Promise<string> 
             return "No highly relevant evidence found in the binder for this query.";
         }
 
-        // FIX: Added type annotation ': any' to 'doc' parameter (Error 2)
         const context = documents.map((doc: any) => doc.content).join('\n---\n'); 
         return context;
         

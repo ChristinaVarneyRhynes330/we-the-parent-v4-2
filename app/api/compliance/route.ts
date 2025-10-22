@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// FIX: Alias createServiceClient as createClient to match original use (solves 'createClient' error)
+// FIX: Alias createServiceClient as createClient (solves the createClient error)
 import { createServiceClient as createClient } from '@/lib/supabase/server'; 
 import { ComplianceIssue, ApiResponse } from '@/types'; 
 
@@ -7,8 +7,8 @@ import { ComplianceIssue, ApiResponse } from '@/types';
  * Handles GET request to retrieve all compliance tasks for the current user/case.
  * Purpose: Provides a list of required and completed tasks to the compliance dashboard.
  */
-export async function GET(req: NextRequest): Promise<NextResponse<ApiResponse<ComplianceIssue[]>>> {
-  // NOTE: This now calls createServiceClient()
+// FIX: Prefixed req with underscore to suppress 'req is declared but its value is never read'
+export async function GET(_req: NextRequest): Promise<NextResponse<ApiResponse<ComplianceIssue[]>>> {
   const supabase = createClient();
   
   // NOTE: In a single-user model, we must first authenticate and get the user ID
@@ -23,9 +23,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<ApiResponse<Co
     const { data: complianceTasks, error } = await supabase
       .from('compliance')
       .select('*')
-      // For a single user, RLS (Row-Level Security) or a join on the case ID 
-      // is usually used. For simplicity, we'll rely on the schema alignment 
-      // but keep the fetch simple to align with the mocked client.
       .eq('user_id', user.id) // Assuming a user_id column is present
       .order('created_at', { ascending: false });
 
@@ -48,7 +45,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<ApiResponse<Co
  * Purpose: Allows the user to input requirements from their court-ordered case plan.
  */
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<ComplianceIssue>>> {
-    // NOTE: This now calls createServiceClient()
     const supabase = createClient();
     
     const { data: { user } } = await supabase.auth.getUser();
@@ -84,6 +80,3 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<C
         return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }
 }
-
-// NOTE: PUT/PATCH (for marking complete/uploading proof) and DELETE would be added 
-// for full CRUD functionality, but this GET/POST provides the core list/add functionality.
