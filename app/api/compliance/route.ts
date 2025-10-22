@@ -1,7 +1,6 @@
-// File: app/api/compliance/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server'; // Use the server client for API routes
+// FIX: Alias createServiceClient as createClient to match original use (solves 'createClient' error)
+import { createServiceClient as createClient } from '@/lib/supabase/server'; 
 import { ComplianceIssue, ApiResponse } from '@/types'; 
 
 /**
@@ -9,6 +8,7 @@ import { ComplianceIssue, ApiResponse } from '@/types';
  * Purpose: Provides a list of required and completed tasks to the compliance dashboard.
  */
 export async function GET(req: NextRequest): Promise<NextResponse<ApiResponse<ComplianceIssue[]>>> {
+  // NOTE: This now calls createServiceClient()
   const supabase = createClient();
   
   // NOTE: In a single-user model, we must first authenticate and get the user ID
@@ -48,6 +48,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<ApiResponse<Co
  * Purpose: Allows the user to input requirements from their court-ordered case plan.
  */
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<ComplianceIssue>>> {
+    // NOTE: This now calls createServiceClient()
     const supabase = createClient();
     
     const { data: { user } } = await supabase.auth.getUser();

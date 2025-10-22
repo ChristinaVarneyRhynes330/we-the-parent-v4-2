@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = await createSSRClient();
 
+  const { id } = params;
+  // FIX: Added line to read the updates from the request body (was missing)
+  const updates = await req.json(); 
+
 
   const { data, error } = await supabase
     .from('documents')

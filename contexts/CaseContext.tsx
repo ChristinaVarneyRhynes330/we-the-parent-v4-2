@@ -1,5 +1,3 @@
-// FILE: contexts/CaseContext.tsx
-
 'use client';
 
 import {
@@ -19,7 +17,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 type Case = {
   id: string;
-  title: string;
+  title: string; // Adjusted for the Dashboard's expected type
+  name: string; // Keeping the name property from the types file
   description?: string;
   created_at: string;
 };
@@ -83,10 +82,16 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Keep backward compatibility with useCases
 export function useCases() {
   const context = useContext(CaseContext);
   if (!context) {
     throw new Error('useCases must be used within a CaseProvider');
   }
   return context;
+}
+
+// CRITICAL FIX: Add the missing export (useCase) that multiple pages rely on (solves 6 warnings)
+export function useCase() {
+  return useCases();
 }
