@@ -1,97 +1,81 @@
-'use client';
+"use client";
 
-import {
+import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useMemo,
+  useState,
   useCallback,
-  ReactNode,
-} from 'react';
-import { createClient } from '@supabase/supabase-js';
+} from "react";
 
-// ✅ Initialize Supabase client with env vars
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export type Case = { id: string; name: string };
 
-type Case = {
-  id: string;
-  // NOTE: Assuming name/title aliasing for simplicity, as per previous analysis
-  title: string; 
-  description?: string;
-  created_at: string;
-};
-
-type CaseContextType = {
+export type CaseContextType = {
   cases: Case[];
   loading: boolean;
-  error: string | null;
-  refreshCases: () => Promise<void>;
+  activeCase: Case | null;
+  setActiveCase: (id: string) => void;
 };
 
-const CaseContext = createContext<CaseContextType | undefined>(undefined);
+const CaseContext = createContext<CaseContextType>({
+  cases: [],
+  loading: false,
+  activeCase: null,
+  setActiveCase: () => {},
+});
 
-export function CaseProvider({ children }: { children: ReactNode }) {
+export function CaseProvider({ children }: { children: React.ReactNode }) {
   const [cases, setCases] = useState<Case[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchCases = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // 👇 Query your "cases" table in Supabase
-      const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase error fetching cases:', error.message);
-        setError(error.message);
-        setCases([]);
-      } else {
-        setCases(data || []);
-      }
-    } catch (err: any) {
-      console.error('Unexpected error fetching cases:', err);
-      setError(err?.message || 'Unknown error');
-      setCases([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [activeCase, setActive] = useState<Case | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    fetchCases();
-  }, [fetchCases]);
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      const stored =
+        typeof window !== "undefined" ? localStorage.getItem("wtp_cases") : null;
+      const parsed: Case[] | null = stored ? JSON.parse(stored) : null;
 
-  return (
-    <CaseContext.Provider
-      value={{
-        cases,
-        loading,
-        error,
-        refreshCases: fetchCases,
-      }}
-    >
-      {children}
-    </CaseContext.Provider>
+      const demoCases: Case[] =
+        parsed && Array.isArray(parsed) && parsed.length > 0
+          ? parsed
+          : [{ id: "demo-1", name: "My Case" }];
+
+      if (!alive) return;
+      setCases(demoCases);
+      setActive(demoCases[0] ?? null);
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const setActiveCase = useCallback(
+    (id: string) => {
+      const found = cases.find((c) => c.id === id) || null;
+      setActive(found);
+    },
+    [cases]
   );
+
+  const value = useMemo(
+    () => ({ cases, loading, activeCase, setActiveCase }),
+    [cases, loading, activeCase, setActiveCase]
+  );
+
+  return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;
 }
 
-// Export the primary hook used by components
-export function useCases() {
-  const context = useContext(CaseContext);
-  if (!context) {
-    throw new Error('useCases must be used within a CaseProvider');
-  }
-  return context;
-}
-
-// CRITICAL FIX: Add the missing useCase export that pages rely on (solves 6 warnings)
 export function useCase() {
-  return useCases();
+  const ctx = useContext(CaseContext);
+  if (!ctx) throw new Error("useCase must be used within CaseProvider");
+  return ctx;
+}
+
+/** 🔧 Alias to preserve existing imports in older pages */
+export function useCases() {
+  return useCase();
 }

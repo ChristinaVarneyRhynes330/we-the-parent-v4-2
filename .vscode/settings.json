@@ -1,35 +1,14 @@
 {
-  "typescript.tsserver.exclude": [
-    "**/node_modules",
-    "**/.next",
-    "**/dist",
-    "**/build",
-    "**/coverage",
-    "**/out",
-    "**/public"
-  ],
-  "files.watcherExclude": {
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/coverage": true,
-    "**/out": true,
-    "**/public": true
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "editor.quickSuggestions": { "strings": true },
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
   },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/coverage": true,
-    "**/out": true,
-    "**/public": true
-  },
-  "geminicodeassist.agentDebugMode": true,
-  "geminicodeassist.codeGenerationPaneViewEnabled": true,
-  "geminicodeassist.updateChannel": "Default",
-  "geminicodeassist.verboseLogging": true,
-  "geminicodeassist.chat.changeView": "Default diff view",
-  "geminicodeassist.inlineSuggestions.nextEditPredictions": true
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }
