@@ -1,9 +1,11 @@
 // File: hooks/useDocuments.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Document, UploadedDoc } from '@/types'; 
+import type { Document, UploadedDoc } from '@/types';
 
 // --- TYPE DEFINITIONS ---
+export type { Document, UploadedDoc };
+
 export type UpdateDocument = Partial<Omit<Document, 'id' | 'case_id' | 'created_at'>>;
 
 interface UploadParams {
@@ -13,13 +15,11 @@ interface UploadParams {
 
 // --- API HELPER FUNCTIONS ---
 
-const API_BASE_URL = '/api';
-
 /**
  * Fetches all documents for a specific case.
  */
 const fetchDocuments = async (caseId: string): Promise<Document[]> => {
-  const response = await fetch(`${API_BASE_URL}/documents?caseId=${caseId}`);
+  const response = await fetch(`/api/documents?case_id=${caseId}`);
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to fetch documents');
@@ -36,7 +36,7 @@ const uploadDocument = async ({ file, caseId }: UploadParams): Promise<Document>
   formData.append('file', file);
   formData.append('caseId', caseId);
 
-  const response = await fetch(`${API_BASE_URL}/upload`, {
+  const response = await fetch('/api/upload', {
     method: 'POST',
     body: formData,
   });
@@ -52,7 +52,7 @@ const uploadDocument = async ({ file, caseId }: UploadParams): Promise<Document>
  * Deletes a document.
  */
 const deleteDocument = async (documentId: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, { method: 'DELETE' });
+  const response = await fetch(`/api/documents/${documentId}`, { method: 'DELETE' });
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to delete document');
@@ -63,10 +63,10 @@ const deleteDocument = async (documentId: string): Promise<void> => {
  * Updates a document's metadata.
  */
 const updateDocument = async ({ id, ...updates }: { id: string } & UpdateDocument): Promise<Document> => {
-  const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+  const response = await fetch(`/api/documents/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ updates }),
+    body: JSON.stringify(updates),
   });
   if (!response.ok) {
     const errorData = await response.json();
@@ -88,8 +88,7 @@ export function useDocuments(caseId: string) {
   // Query to fetch all documents for a given case
   const { 
     data: documents, 
-    // FIX: Destructure as isQueryLoading internally
-    isLoading: isQueryLoading, 
+    isLoading, 
     error 
   } = useQuery<Document[]>({
     queryKey,
@@ -128,7 +127,7 @@ export function useDocuments(caseId: string) {
   return {
     // Data
     documents: documents ?? [],
-    isLoading: isQueryLoading, // FIX: Export as isLoading
+    isLoading,
     error: error as Error | null,
     
     // Mutations
@@ -142,6 +141,3 @@ export function useDocuments(caseId: string) {
     isUpdating: updateDocumentMutation.isPending,
   };
 }
-
-// Re-export key types for consumers (e.g., predicate page)
-export { Document, UploadedDoc, UploadParams };

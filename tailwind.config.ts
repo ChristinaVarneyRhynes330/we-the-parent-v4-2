@@ -1,7 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./styles/**/*.{css}"],
+  content: [
+    "./app/**/*.{ts,tsx}", 
+    "./components/**/*.{ts,tsx}", 
+    "./styles/**/*.css"  // FIXED: Removed curly braces
+  ],
   theme: {
     extend: {
       colors: {

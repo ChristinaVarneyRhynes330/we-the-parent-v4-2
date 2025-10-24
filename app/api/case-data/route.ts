@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
-import { createSSRClient } from '@/lib/supabase/server';
+// REMOVED: import { createSSRClient } from '@/lib/supabase/server';
+// This import was unused and causing the build error
 
 const performDocumentAnalysis = async (documentContent: string): Promise<{ documentType: string; summary: string }> => {
   if (!process.env.OPENAI_API_KEY) {
@@ -56,8 +57,8 @@ const performDocumentAnalysis = async (documentContent: string): Promise<{ docum
 };
 
 export async function POST(request: NextRequest) {
-  const supabase = await createSSRClient();
-
+  // REMOVED: const supabase = await createSSRClient();
+  // This was declared but never used
 
   try {
     const body = await request.json();

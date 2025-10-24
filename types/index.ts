@@ -1,49 +1,42 @@
 // FILE: types/index.ts
-// Replace your existing file with this complete version
+// Place this file in the ROOT of your project at: types/index.ts
 
 // ============================================
-// CORE TYPES
-// ============================================
-
-export interface Case {
-  id: string;
-  user_id: string;
-  name: string;
-  case_number: string;
-  created_at: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  created_at: string;
-}
-
-// ============================================
-// DOCUMENT TYPES
+// DOCUMENT TYPES - MUST BE FIRST
 // ============================================
 
 export interface Document {
   id: string;
   case_id: string;
-  name?: string;
+  title?: string;
   file_name: string;
   file_type: string;
   file_size: number;
-  file_path?: string;
-  storage_path?: string;
+  file_path: string;
+  file_url?: string;
+  content_type?: string;
+  size_bytes?: number;
   document_type: string;
   summary: string;
+  status?: string;
+  error_message?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface DocumentChunk {
   id: string;
   document_id: string;
   content: string;
-  embedding: number[];
+  embedding?: number[];
+  chunk_index?: number;
+  token_count?: number;
+  checksum?: string;
   created_at: string;
 }
+
+// CRITICAL: Alias for compatibility
+export type UploadedDoc = Document;
 
 // ============================================
 // EVIDENCE TYPES
@@ -63,8 +56,23 @@ export interface Evidence {
   created_at: string;
 }
 
-// Alias for compatibility with existing code
-export type UploadedDoc = Evidence;
+// ============================================
+// CORE TYPES
+// ============================================
+
+export interface Case {
+  id: string;
+  user_id: string;
+  name: string;
+  case_number: string;
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  created_at: string;
+}
 
 // ============================================
 // EVENT/TIMELINE TYPES
@@ -171,6 +179,7 @@ export interface ResearchSource {
 export interface ResearchResult {
   summary: string;
   sources: ResearchSource[];
+  citation?: string;
 }
 
 // ============================================
@@ -178,14 +187,13 @@ export interface ResearchResult {
 // ============================================
 
 export interface ComplianceIssue {
-  id: string; // <-- ADDED
+  id: string;
   severity: 'error' | 'warning';
   message: string;
   ruleId: string;
-  // --- ADDED REQUIRED FIELDS FOR FRONTEND LOGIC ---
-  isCompleted: boolean; // <-- ADDED
-  dueDate: string; // <-- ADDED
-  created_at: string; // <-- ADDED
+  isCompleted: boolean;
+  dueDate: string;
+  created_at: string;
 }
 
 export interface DraftRequest {
@@ -263,6 +271,7 @@ export interface FormState<T> {
 // ============================================
 // LEGAL UTILITY TYPES
 // ============================================
+
 export interface FoundationScript {
   id: string;
   evidenceType: string;
