@@ -95,7 +95,15 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-      <EventForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} event={null} onSubmit={handleAddEvent} />
+      
+      {/* FIX: Conditionally render EventForm instead of using isOpen prop */}
+      {isModalOpen && (
+        <EventForm 
+          event={null} 
+          onSubmit={handleAddEvent} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </>
   );
 }
