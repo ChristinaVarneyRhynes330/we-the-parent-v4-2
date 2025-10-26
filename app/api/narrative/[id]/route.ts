@@ -33,7 +33,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE a narrative entry
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  // FIX: Prefix req with underscore to mark as intentionally unused
   console.log('[/api/narrative/[id]] DELETE request received');
   try {
     const supabase = await createSSRClient();
@@ -43,8 +44,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const { error } = await supabase
       .from('narrative_entries')
       .delete()
-      .eq('id', id)
-;
+      .eq('id', id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
