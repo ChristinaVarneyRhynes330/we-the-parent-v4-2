@@ -1,13 +1,12 @@
 // File: app/api/draft/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-// FIX: Changed import name from 'createClient' to 'createSSRClient'
-import { createSSRClient } from '@/lib/supabase/server'; 
+import { createSSRClient } from '@/lib/supabase/server';
 import { ApiResponse, DraftRequest, DraftResponse } from '@/types'; 
 import { promises as fs } from 'fs';
 import path from 'path';
 
-// --- HELPER FUNCTION: Load Template (unchanged) ---
+// --- HELPER FUNCTION: Load Template ---
 async function loadTemplate(templateId: string): Promise<string> {
     const templatePath = path.join(process.cwd(), 'lib', 'templates', 'florida', `${templateId}.md`);
     
@@ -19,7 +18,7 @@ async function loadTemplate(templateId: string): Promise<string> {
     }
 }
 
-// --- MOCK AI DRAFTING CORE (unchanged) ---
+// --- MOCK AI DRAFTING CORE ---
 async function generateDraft(templateContent: string, facts: string, request: DraftRequest): Promise<string> {
     await new Promise(resolve => setTimeout(resolve, 2000)); 
 
@@ -42,15 +41,13 @@ async function generateDraft(templateContent: string, facts: string, request: Dr
 
     return draft;
 }
-// -----------------------------------------
 
 // --- LIVE RAG FACT RETRIEVAL ---
 async function retrieveCaseFacts(caseId: string, documentType: string): Promise<string> {
-    // FIX: createSSRClient() returns a client synchronously, but RPC call still needs await
-    const supabase = createSSRClient(); 
+    // FIX: Added await here - createSSRClient() is async!
+    const supabase = await createSSRClient();
     
     try {
-        // FIX: The RPC call was missing the 'await' keyword, causing the TypeScript error.
         const { data: documents, error } = await supabase.rpc('match_documents', {
             query_text: documentType,     
             case_id_filter: caseId, 
@@ -67,7 +64,6 @@ async function retrieveCaseFacts(caseId: string, documentType: string): Promise<
             return "No highly specific evidence found in the binder to support this filing.";
         }
 
-        // Added type annotation to suppress implicit 'any' error
         const context = documents.map((doc: any) => `- ${doc.content.substring(0, 100)}... (Evid. Ref.)`).join('\n'); 
         return context;
 
@@ -76,7 +72,6 @@ async function retrieveCaseFacts(caseId: string, documentType: string): Promise<
         return "RAG system failed to retrieve facts due to critical error.";
     }
 }
-// -----------------------------
 
 /**
  * Handles the POST request to generate a legal draft.
