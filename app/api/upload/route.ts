@@ -3,7 +3,8 @@
 
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { chunkText, sha256Checksum, sanitizeText, estimateTokenCount } from '@/lib/utils';
+import { chunkText, sha256Checksum, sanitizeText } from '@/lib/utils';
+// FIX: Removed unused estimateTokenCount import
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
