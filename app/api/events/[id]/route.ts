@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 
 // DELETE handler to remove an event
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest, // FIX: Prefix with underscore to mark as intentionally unused
   { params }: { params: { id: string } }
 ) {
   console.log('[/api/events/[id]] DELETE request received');
@@ -96,7 +96,7 @@ export async function PUT(
 
 // GET handler to fetch a specific event
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest, // FIX: Prefix with underscore to mark as intentionally unused
   { params }: { params: { id: string } }
 ) {
   console.log('[/api/events/[id]] GET request received');
