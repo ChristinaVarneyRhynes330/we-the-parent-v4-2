@@ -1,3 +1,6 @@
+// FILE: contexts/CaseContext.tsx
+// COMPLETE REPLACEMENT
+
 'use client';
 
 import {
@@ -10,28 +13,26 @@ import {
 } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// ✅ Initialize Supabase client with env vars
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-type Case = {
+export interface Case {
   id: string;
-  title: string; 
-  description?: string;
-  created_at: string;
-  // CRITICAL FIX: Added required properties for Sidebar and components
+  user_id: string;
   name: string;
   case_number: string;
-};
+  title?: string;
+  description?: string;
+  created_at: string;
+}
 
 type CaseContextType = {
   cases: Case[];
   loading: boolean;
   error: string | null;
   refreshCases: () => Promise<void>;
-  
-  // CRITICAL FIX: Add active case state and setter (Solves errors in Sidebar/Compliance)
+  refetchCases: () => Promise<void>;
   activeCase: Case | null;
   setActiveCase: (caseId: string) => void;
 };
@@ -40,7 +41,7 @@ const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
 export function CaseProvider({ children }: { children: ReactNode }) {
   const [cases, setCases] = useState<Case[]>([]);
-  const [activeCase, setActiveCaseState] = useState<Case | null>(null); // Added state
+  const [activeCase, setActiveCaseState] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +50,6 @@ export function CaseProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      // 👇 Query your "cases" table in Supabase
       const { data, error } = await supabase
         .from('cases')
         .select('*')
@@ -60,10 +60,15 @@ export function CaseProvider({ children }: { children: ReactNode }) {
         setError(error.message);
         setCases([]);
       } else {
-        setCases(data || []);
-        // Set first case as active if none is currently selected
-        if (data && data.length > 0 && !activeCase) {
-          setActiveCaseState(data[0] as Case);
+        const casesData = (data || []).map(c => ({
+          ...c,
+          title: c.title || c.name,
+        })) as Case[];
+        
+        setCases(casesData);
+        
+        if (casesData.length > 0 && !activeCase) {
+          setActiveCaseState(casesData[0]);
         }
       }
     } catch (err: any) {
@@ -79,7 +84,6 @@ export function CaseProvider({ children }: { children: ReactNode }) {
     fetchCases();
   }, [fetchCases]);
   
-  // CRITICAL FIX: Add setActiveCase function
   const setActiveCase = useCallback((caseId: string) => {
     const foundCase = cases.find(c => c.id === caseId);
     if (foundCase) {
@@ -94,8 +98,7 @@ export function CaseProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         refreshCases: fetchCases,
-        
-        // Expose new properties
+        refetchCases: fetchCases,
         activeCase,
         setActiveCase,
       }}
@@ -105,7 +108,6 @@ export function CaseProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Export the primary hook used by components
 export function useCases() {
   const context = useContext(CaseContext);
   if (!context) {
@@ -114,7 +116,6 @@ export function useCases() {
   return context;
 }
 
-// CRITICAL FIX: Add the missing useCase export that pages rely on
 export function useCase() {
   return useCases();
 }

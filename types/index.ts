@@ -1,8 +1,8 @@
 // FILE: types/index.ts
-// Place this file in the ROOT of your project at: types/index.ts
+// COMPLETE REPLACEMENT - Place this at: types/index.ts
 
 // ============================================
-// DOCUMENT TYPES - MUST BE FIRST
+// DOCUMENT TYPES
 // ============================================
 
 export interface Document {
@@ -35,7 +35,6 @@ export interface DocumentChunk {
   created_at: string;
 }
 
-// CRITICAL: Alias for compatibility
 export type UploadedDoc = Document;
 
 // ============================================
@@ -65,6 +64,8 @@ export interface Case {
   user_id: string;
   name: string;
   case_number: string;
+  title?: string;
+  description?: string;
   created_at: string;
 }
 
@@ -191,16 +192,17 @@ export interface ComplianceIssue {
   severity: 'error' | 'warning';
   message: string;
   ruleId: string;
-  isCompleted: boolean;
-  dueDate: string;
+  isCompleted?: boolean;
+  dueDate?: string;
   created_at: string;
 }
 
 export interface DraftRequest {
-  templateId: string;
-  caseId: string;
+  templateId?: string;
+  caseId?: string;
   userInstructions?: string;
-  documentType?: string;
+  documentType?: 'Motion' | 'Affidavit' | 'Objection';
+  modelName?: 'gemini-pro' | 'gpt-4o';
   caseName?: string;
   caseNumber?: string;
   reason?: string;

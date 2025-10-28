@@ -45,15 +45,18 @@ async function generateDraft(templateContent: string, facts: string, request: Dr
 // --- LIVE RAG FACT RETRIEVAL ---
 async function retrieveCaseFacts(caseId: string, documentType: string): Promise<string> {
     // FIX: Added await here - createSSRClient() is async!
-    const supabase = await createSSRClient();
+   const supabase = await createClient();
     
     try {
-        const { data: documents, error } = await supabase.rpc('match_documents', {
-            query_text: documentType,     
-            case_id_filter: caseId, 
-            match_threshold: 0.6, 
-            match_count: 8        
-        });
+       const { data: relevantChunks, error: searchError } = await supabase.rpc(
+  'match_document_chunks',
+  {
+    p_case_id: caseId,
+    p_query_embedding: embedding,
+    p_match_threshold: 0.7,
+    p_match_count: 3,
+  }
+);
 
         if (error) {
             console.error("Supabase RAG Error for Drafting:", error);

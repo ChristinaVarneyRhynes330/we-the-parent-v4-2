@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertTriangle, FileText, Send } from 'lucide-react';
+import { AlertTriangle, Send } from 'lucide-react';
 import { useEmergencyMotion } from '@/hooks/useEmergencyMotion';
 
 export default function EmergencyPage() {
@@ -43,8 +43,9 @@ export default function EmergencyPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="form-label">Case Name</label>
+                <label htmlFor="caseName" className="form-label">Case Name</label>
                 <input
+                  id="caseName"
                   type="text"
                   value={formData.caseName}
                   onChange={(e) => handleInputChange('caseName', e.target.value)}
@@ -53,8 +54,9 @@ export default function EmergencyPage() {
               </div>
 
               <div>
-                <label className="form-label">Case Number</label>
+                <label htmlFor="caseNumber" className="form-label">Case Number</label>
                 <input
+                  id="caseNumber"
                   type="text"
                   value={formData.caseNumber}
                   onChange={(e) => handleInputChange('caseNumber', e.target.value)}
@@ -63,8 +65,9 @@ export default function EmergencyPage() {
               </div>
 
               <div>
-                <label className="form-label">Emergency Situation</label>
+                <label htmlFor="reason" className="form-label">Emergency Situation</label>
                 <textarea
+                  id="reason"
                   value={formData.reason}
                   onChange={(e) => handleInputChange('reason', e.target.value)}
                   placeholder="Describe the emergency situation requiring immediate court intervention..."
@@ -74,8 +77,9 @@ export default function EmergencyPage() {
               </div>
 
               <div>
-                <label className="form-label">Requested Relief</label>
+                <label htmlFor="outcome" className="form-label">Requested Relief</label>
                 <textarea
+                  id="outcome"
                   value={formData.outcome}
                   onChange={(e) => handleInputChange('outcome', e.target.value)}
                   placeholder="What specific emergency action do you need from the court?"
